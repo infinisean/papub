@@ -36,7 +36,7 @@ def get_system_info(hostname, api_key):
     license_info = api_request("<request><license><info></info></license></request>")
     
     # Get session information
-    session_info = api_request("<show><session><info></info></session></show>")
+    #session_info = api_request("<show><session><info></info></session></show>")
     
     # Get resource utilization
     resource_info = api_request("<show><system><resources></resources></system></show>")
@@ -56,7 +56,7 @@ def get_system_info(hostname, api_key):
     return {
         'system_info': system_info,
         'license_info': license_info,
-        'session_info': session_info,
+        #'session_info': session_info,
         'resource_info': resource_info,
         'interface_info': interface_info,
         'log_forwarding_info': log_forwarding_info,
