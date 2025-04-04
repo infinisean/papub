@@ -95,10 +95,10 @@ def extract_info(info):
         data['CPU Usage'] = 100 - cpu_idle
 
         # Parse memory usage
-        mem_line = next(line for line in resource_info if line.startswith("MiB Mem:"))
+        mem_line = next(line for line in resource_info if line.startswith("MiB Mem"))
         mem_values = mem_line.split()
-        total_mem = float(mem_values[2])
-        used_mem = float(mem_values[4])
+        total_mem = float(mem_values[3])
+        used_mem = float(mem_values[7])
         free_mem = total_mem - used_mem
         data['Memory'] = {'Total': total_mem, 'Used': used_mem, 'Free': free_mem}
     # Extract interface information
