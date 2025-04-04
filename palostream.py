@@ -86,7 +86,7 @@ def extract_info(info):
         resource_info = info['resource_info'].find('.//result').text.splitlines()
         # Parse load averages
         load_line = resource_info[0]
-        load_averages = [avg.replace(',', '') for avg in load_line.split()[-3:]]
+        load_averages = [float(avg.replace(',', '')) for avg in load_line.split()[-3:]]
         data['Load Averages'] = load_averages
 
         # Parse CPU usage
@@ -166,7 +166,7 @@ def main():
                 atl_resource_data = extract_info({'resource_info': atl_resource_info})
 
                 # Update load average graph
-                st.line_chart([float(lak_resource_data['Load Averages'][0]), float(atl_resource_data['Load Averages'][0])])
+                st.line_chart([lak_resource_data['Load Averages'][0], atl_resource_data['Load Averages'][0]])
 
                 # Update CPU usage graph
                 st.line_chart([lak_resource_data['CPU Usage'], atl_resource_data['CPU Usage']])
@@ -184,6 +184,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
