@@ -66,7 +66,7 @@ def extract_info(info):
     data = {}
 
     # Extract basic system information
-    if info['system_info'] is not None:
+    if 'system_info' in info and info['system_info'] is not None:
         system_info = info['system_info']
         data.update({
             'Hostname': system_info.find('.//hostname').text,
@@ -77,12 +77,12 @@ def extract_info(info):
         })
 
     # Extract license information
-    if info['license_info'] is not None:
+    if 'license_info' in info and info['license_info'] is not None:
         licenses = info['license_info'].findall('.//entry')
         data['Licenses'] = [license.find('feature').text for license in licenses]
 
     # Extract resource utilization
-    if info['resource_info'] is not None:
+    if 'resource_info' in info and info['resource_info'] is not None:
         resource_info = info['resource_info'].find('.//result').text.splitlines()
         # Parse load averages
         load_line = resource_info[0]
@@ -101,13 +101,14 @@ def extract_info(info):
         used_mem = float(mem_values[7])
         free_mem = total_mem - used_mem
         data['Memory'] = {'Total': total_mem, 'Used': used_mem, 'Free': free_mem}
+
     # Extract interface information
-    if info['interface_info'] is not None:
+    if 'interface_info' in info and info['interface_info'] is not None:
         interfaces = info['interface_info'].findall('.//entry')
         data['Interfaces'] = [{'Name': iface.find('name').text, 'IP': iface.find('ip').text, 'Status': iface.find('status').text} for iface in interfaces]
 
     # Extract HA status
-    if info['ha_info'] is not None:
+    if 'ha_info' in info and info['ha_info'] is not None:
         ha_info = info['ha_info']
         data['HA Status'] = ha_info.find('.//state').text
 
@@ -152,6 +153,8 @@ def main():
             # Display the information in a table
             st.table([lak_data, atl_data])
 
+            # Select refresh interval
+            refresh_interval = st.selectbox("Select refresh interval (seconds):", [10, 30, 60, 120, 300], index=2)
             # Set up dynamic updates for resource info
             while True:
                 # Re-query resource info
@@ -174,11 +177,12 @@ def main():
                        labels=['Used', 'Free'], autopct='%1.1f%%')
                 st.pyplot(fig)
 
-                # Wait for 10 seconds before updating
-                time.sleep(10)
+                # Wait for the selected interval before updating
+                time.sleep(refresh_interval)
         else:
             st.error("Failed to retrieve system information.")
 
 if __name__ == "__main__":
     main()
+
 
