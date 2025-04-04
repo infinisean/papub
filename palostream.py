@@ -42,7 +42,7 @@ def get_system_info(hostname, api_key):
     license_info = api_request("<request><license><info></info></license></request>", "license_info")
 
     # Get session information
-    session_info = api_request("<show><session><info></info></session></show>", "session_info")
+    #session_info = api_request("<show><session><info></info></session></show>", "session_info")
 
     # Get resource utilization
     resource_info = api_request("<show><system><resources></resources></system></show>", "resource_info")
@@ -51,23 +51,23 @@ def get_system_info(hostname, api_key):
     interface_info = api_request("<show><interface>all</interface></show>", "interface_info")
 
     # Get log forwarding status
-    log_forwarding_info = api_request("<show><log><forwarding></forwarding></log></show>", "log_forwarding_info")
+    #log_forwarding_info = api_request("<show><log><forwarding></forwarding></log></show>", "log_forwarding_info")
 
     # Get HA status
     ha_info = api_request("<show><high-availability><state></state></high-availability></show>", "ha_info")
 
     # Get security profile status
-    security_profile_info = api_request("<show><profiles></profiles></show>", "security_profile_info")
+    #security_profile_info = api_request("<show><profiles></profiles></show>", "security_profile_info")
 
     return {
         'system_info': system_info,
         'license_info': license_info,
-        'session_info': session_info,
+        #'session_info': session_info,
         'resource_info': resource_info,
         'interface_info': interface_info,
-        'log_forwarding_info': log_forwarding_info,
+        #'log_forwarding_info': log_forwarding_info,
         'ha_info': ha_info,
-        'security_profile_info': security_profile_info
+        #'security_profile_info': security_profile_info
     }
 
 # Function to extract and format information
