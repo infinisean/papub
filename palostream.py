@@ -84,6 +84,8 @@ def extract_info(info):
         licenses = info['license_info'].findall('.//entry')
         data['Licenses'] = [license.find('feature').text for license in licenses]
     
+    
+    '''
     # Extract session information
     if info['session_info'] is not None:
         session_info = info['session_info']
@@ -91,7 +93,7 @@ def extract_info(info):
             'Current Sessions': session_info.find('.//num-active').text,
             'Max Sessions': session_info.find('.//max').text
         })
-    
+    '''
     # Extract resource utilization
     if info['resource_info'] is not None:
         resource_info = info['resource_info']
