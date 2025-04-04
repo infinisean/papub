@@ -86,7 +86,7 @@ def extract_info(info):
         resource_info = info['resource_info'].find('.//result').text.splitlines()
         # Parse load averages
         load_line = resource_info[0]
-        load_averages = load_line.split()[-3:]
+        load_averages = [avg.replace(',', '') for avg in load_line.split()[-3:]]
         data['Load Averages'] = load_averages
 
         # Parse CPU usage
@@ -184,5 +184,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
