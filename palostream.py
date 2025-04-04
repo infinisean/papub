@@ -91,8 +91,11 @@ def extract_info(info):
 
         # Parse CPU usage
         cpu_line = next(line for line in resource_info if line.startswith("%Cpu"))
+        print(f"CPU Line: {cpu_line}")  # Debugging line
         cpu_idle = float(cpu_line.split()[-4].replace("id,", ""))
+        print(f"CPU Idle: {cpu_idle}")  # Debugging line
         data['CPU Usage'] = 100 - cpu_idle
+        print(f"CPU Usage: {data['CPU Usage']}")  # Debugging line
 
         # Parse memory usage
         mem_line = next(line for line in resource_info if line.startswith("MiB Mem"))
@@ -146,15 +149,9 @@ def main():
         atl_info = get_system_info('a46panorama', api_key)
 
         if lak_info and atl_info:
-            # Extract relevant information
-            lak_data = extract_info(lak_info)
-            atl_data = extract_info(atl_info)
-
-            # Display the information in a table
-            st.table([lak_data, atl_data])
-
             # Select refresh interval
             refresh_interval = st.selectbox("Select refresh interval (seconds):", [10, 30, 60, 120, 300], index=2)
+
             # Set up dynamic updates for resource info
             while True:
                 # Re-query resource info
@@ -165,6 +162,8 @@ def main():
                 lak_resource_data = extract_info({'resource_info': lak_resource_info})
                 atl_resource_data = extract_info({'resource_info': atl_resource_info})
 
+                # Update the table with new data
+                st.table([lak_resource_data, atl_resource_data])
                 # Update load average graph
                 st.line_chart([lak_resource_data['Load Averages'][0], atl_resource_data['Load Averages'][0]])
 
@@ -172,7 +171,7 @@ def main():
                 st.line_chart([lak_resource_data['CPU Usage'], atl_resource_data['CPU Usage']])
 
                 # Update memory usage pie chart
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(4, 4))  # Smaller figure size
                 ax.pie([lak_resource_data['Memory']['Used'], lak_resource_data['Memory']['Free']],
                        labels=['Used', 'Free'], autopct='%1.1f%%')
                 st.pyplot(fig)
@@ -184,6 +183,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
