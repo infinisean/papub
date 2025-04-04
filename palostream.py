@@ -17,17 +17,110 @@ def get_api_key(hostname, username, password):
             return xml_response.find('.//key').text
     return None
 
-# Function to get system info and save raw response to a file
+# Function to get system info and additional details
 def get_system_info(hostname, api_key):
-    url = f"https://{hostname}/api/?type=op&cmd=<show><system><info></info></system></show>"
     headers = {'X-PAN-KEY': api_key}
-    response = requests.get(url, headers=headers, verify=False)
-    if response.status_code == 200:
-        # Save raw response to a file
-        with open(f"{hostname}_system_info.txt", "w") as file:
-            file.write(response.text)
-        return ET.fromstring(response.text)
-    return None
+    
+    # Helper function to make API requests
+    def api_request(cmd):
+        url = f"https://{hostname}/api/?type=op&cmd={cmd}"
+        response = requests.get(url, headers=headers, verify=False)
+        if response.status_code == 200:
+            return ET.fromstring(response.text)
+        return None
+
+    # Get basic system info
+    system_info = api_request("<show><system><info></info></system></show>")
+    
+    # Get license information
+    license_info = api_request("<request><license><info></info></license></request>")
+    
+    # Get session information
+    session_info = api_request("<show><session><info></info></session></show>")
+    
+    # Get resource utilization
+    resource_info = api_request("<show><system><resources></resources></system></show>")
+    
+    # Get interface information
+    interface_info = api_request("<show><interface>all</interface></show>")
+    
+    # Get log forwarding status
+    log_forwarding_info = api_request("<show><log><forwarding></forwarding></log></show>")
+    
+    # Get HA status
+    ha_info = api_request("<show><high-availability><state></state></high-availability></show>")
+    
+    # Get security profile status
+    security_profile_info = api_request("<show><profiles></profiles></show>")
+    
+    return {
+        'system_info': system_info,
+        'license_info': license_info,
+        'session_info': session_info,
+        'resource_info': resource_info,
+        'interface_info': interface_info,
+        'log_forwarding_info': log_forwarding_info,
+        'ha_info': ha_info,
+        'security_profile_info': security_profile_info
+    }
+
+# Function to extract and format information
+def extract_info(info):
+    data = {}
+    
+    # Extract basic system information
+    if info['system_info'] is not None:
+        system_info = info['system_info']
+        data.update({
+            'Hostname': system_info.find('.//hostname').text,
+            'IP Address': system_info.find('.//ip-address').text,
+            'Uptime': system_info.find('.//uptime').text,
+            'Model': system_info.find('.//model').text,
+            'Version': system_info.find('.//sw-version').text
+        })
+    
+    # Extract license information
+    if info['license_info'] is not None:
+        licenses = info['license_info'].findall('.//entry')
+        data['Licenses'] = [license.find('feature').text for license in licenses]
+    
+    # Extract session information
+    if info['session_info'] is not None:
+        session_info = info['session_info']
+        data.update({
+            'Current Sessions': session_info.find('.//num-active').text,
+            'Max Sessions': session_info.find('.//max').text
+        })
+    
+    # Extract resource utilization
+    if info['resource_info'] is not None:
+        resource_info = info['resource_info']
+        data.update({
+            'CPU Usage': resource_info.find('.//cpu').text,
+            'Memory Usage': resource_info.find('.//memory').text
+        })
+    
+    # Extract interface information
+    if info['interface_info'] is not None:
+        interfaces = info['interface_info'].findall('.//entry')
+        data['Interfaces'] = [{'Name': iface.find('name').text, 'IP': iface.find('ip').text, 'Status': iface.find('status').text} for iface in interfaces]
+    
+    # Extract log forwarding status
+    if info['log_forwarding_info'] is not None:
+        log_forwarding_info = info['log_forwarding_info']
+        data['Log Forwarding'] = log_forwarding_info.find('.//status').text
+    
+    # Extract HA status
+    if info['ha_info'] is not None:
+        ha_info = info['ha_info']
+        data['HA Status'] = ha_info.find('.//state').text
+    
+    # Extract security profile status
+    if info['security_profile_info'] is not None:
+        profiles = info['security_profile_info'].findall('.//entry')
+        data['Security Profiles'] = [profile.find('name').text for profile in profiles]
+    
+    return data
 
 # Streamlit app
 def main():
@@ -60,17 +153,8 @@ def main():
         lak_info = get_system_info('l17panorama', api_key)
         atl_info = get_system_info('a46panorama', api_key)
 
-        if lak_info is not None and atl_info is not None:
+        if lak_info and atl_info:
             # Extract relevant information
-            def extract_info(system_info):
-                return {
-                    'Hostname': system_info.find('.//hostname').text,
-                    'IP Address': system_info.find('.//ip-address').text,
-                    'Uptime': system_info.find('.//uptime').text,
-                    'Model': system_info.find('.//model').text,
-                    'Version': system_info.find('.//sw-version').text
-                }
-
             lak_data = extract_info(lak_info)
             atl_data = extract_info(atl_info)
 
@@ -81,4 +165,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
