@@ -3,12 +3,15 @@ import requests
 from xml.etree import ElementTree as ET
 import urllib3
 import os
+import time
+import matplotlib.pyplot as plt
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Ensure the logs directory exists
 if not os.path.exists("logs"):
     os.makedirs("logs")
+
 # Function to get API key
 def get_api_key(hostname, username, password):
     url = f"https://{hostname}/api/?type=keygen"
@@ -41,33 +44,21 @@ def get_system_info(hostname, api_key):
     # Get license information
     license_info = api_request("<request><license><info></info></license></request>", "license_info")
 
-    # Get session information
-    #session_info = api_request("<show><session><info></info></session></show>", "session_info")
-
     # Get resource utilization
     resource_info = api_request("<show><system><resources></resources></system></show>", "resource_info")
 
     # Get interface information
     interface_info = api_request("<show><interface>all</interface></show>", "interface_info")
 
-    # Get log forwarding status
-    #log_forwarding_info = api_request("<show><log><forwarding></forwarding></log></show>", "log_forwarding_info")
-
     # Get HA status
     ha_info = api_request("<show><high-availability><state></state></high-availability></show>", "ha_info")
-
-    # Get security profile status
-    #security_profile_info = api_request("<show><profiles></profiles></show>", "security_profile_info")
 
     return {
         'system_info': system_info,
         'license_info': license_info,
-        #'session_info': session_info,
         'resource_info': resource_info,
         'interface_info': interface_info,
-        #'log_forwarding_info': log_forwarding_info,
-        'ha_info': ha_info,
-        #'security_profile_info': security_profile_info
+        'ha_info': ha_info
     }
 
 # Function to extract and format information
@@ -92,31 +83,33 @@ def extract_info(info):
 
     # Extract resource utilization
     if info['resource_info'] is not None:
-        resource_info = info['resource_info']
-        data.update({
-            'CPU Usage': resource_info.find('.//cpu').text,
-            'Memory Usage': resource_info.find('.//memory').text
-        })
+        resource_info = info['resource_info'].find('.//result').text.splitlines()
+        # Parse load averages
+        load_line = resource_info[0]
+        load_averages = load_line.split()[-3:]
+        data['Load Averages'] = load_averages
 
+        # Parse CPU usage
+        cpu_line = next(line for line in resource_info if line.startswith("%Cpu"))
+        cpu_idle = float(cpu_line.split()[-4].replace("id,", ""))
+        data['CPU Usage'] = 100 - cpu_idle
+
+        # Parse memory usage
+        mem_line = next(line for line in resource_info if line.startswith("MiB Mem:"))
+        mem_values = mem_line.split()
+        total_mem = float(mem_values[2])
+        used_mem = float(mem_values[4])
+        free_mem = total_mem - used_mem
+        data['Memory'] = {'Total': total_mem, 'Used': used_mem, 'Free': free_mem}
     # Extract interface information
     if info['interface_info'] is not None:
         interfaces = info['interface_info'].findall('.//entry')
         data['Interfaces'] = [{'Name': iface.find('name').text, 'IP': iface.find('ip').text, 'Status': iface.find('status').text} for iface in interfaces]
 
-    # Extract log forwarding status
-    if info['log_forwarding_info'] is not None:
-        log_forwarding_info = info['log_forwarding_info']
-        data['Log Forwarding'] = log_forwarding_info.find('.//status').text
-
     # Extract HA status
     if info['ha_info'] is not None:
         ha_info = info['ha_info']
         data['HA Status'] = ha_info.find('.//state').text
-
-    # Extract security profile status
-    if info['security_profile_info'] is not None:
-        profiles = info['security_profile_info'].findall('.//entry')
-        data['Security Profiles'] = [profile.find('name').text for profile in profiles]
 
     return data
 
@@ -158,8 +151,34 @@ def main():
 
             # Display the information in a table
             st.table([lak_data, atl_data])
+
+            # Set up dynamic updates for resource info
+            while True:
+                # Re-query resource info
+                lak_resource_info = get_system_info('l17panorama', api_key)['resource_info']
+                atl_resource_info = get_system_info('a46panorama', api_key)['resource_info']
+
+                # Extract and display updated resource info
+                lak_resource_data = extract_info({'resource_info': lak_resource_info})
+                atl_resource_data = extract_info({'resource_info': atl_resource_info})
+
+                # Update load average graph
+                st.line_chart([float(lak_resource_data['Load Averages'][0]), float(atl_resource_data['Load Averages'][0])])
+
+                # Update CPU usage graph
+                st.line_chart([lak_resource_data['CPU Usage'], atl_resource_data['CPU Usage']])
+
+                # Update memory usage pie chart
+                fig, ax = plt.subplots()
+                ax.pie([lak_resource_data['Memory']['Used'], lak_resource_data['Memory']['Free']],
+                       labels=['Used', 'Free'], autopct='%1.1f%%')
+                st.pyplot(fig)
+
+                # Wait for 10 seconds before updating
+                time.sleep(10)
         else:
             st.error("Failed to retrieve system information.")
 
 if __name__ == "__main__":
     main()
+
