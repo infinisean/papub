@@ -91,11 +91,14 @@ def extract_info(info):
 
         # Parse CPU usage
         cpu_line = next(line for line in resource_info if line.startswith("%Cpu"))
-        print(f"CPU Line: {cpu_line}")  # Debugging line
+        with open("logs/cpu_debug.log", "a") as log_file:  # Log to file
+            log_file.write(f"CPU Line: {cpu_line}\n")
         cpu_idle = float(cpu_line.split()[-4].replace("id,", ""))
-        print(f"CPU Idle: {cpu_idle}")  # Debugging line
+        with open("logs/cpu_debug.log", "a") as log_file:  # Log to file
+            log_file.write(f"CPU Idle: {cpu_idle}\n")
         data['CPU Usage'] = 100 - cpu_idle
-        print(f"CPU Usage: {data['CPU Usage']}")  # Debugging line
+        with open("logs/cpu_debug.log", "a") as log_file:  # Log to file
+            log_file.write(f"CPU Usage: {data['CPU Usage']}\n")
 
         # Parse memory usage
         mem_line = next(line for line in resource_info if line.startswith("MiB Mem"))
@@ -119,6 +122,7 @@ def extract_info(info):
 
 # Streamlit app
 def main():
+    st.set_page_config(layout="wide")  # Set layout to wide for better alignment
     st.title("Palo Alto Panorama Health Dashboard")
 
     # Check for the existence of the "testingkey" file
@@ -152,6 +156,11 @@ def main():
             # Select refresh interval
             refresh_interval = st.selectbox("Select refresh interval (seconds):", [10, 30, 60, 120, 300], index=2)
 
+            # Create placeholders for dynamic content
+            table_placeholder = st.empty()
+            load_chart_placeholder = st.empty()
+            cpu_chart_placeholder = st.empty()
+            memory_chart_placeholder = st.empty()
             # Set up dynamic updates for resource info
             while True:
                 # Re-query resource info
@@ -163,18 +172,19 @@ def main():
                 atl_resource_data = extract_info({'resource_info': atl_resource_info})
 
                 # Update the table with new data
-                st.table([lak_resource_data, atl_resource_data])
+                table_placeholder.table([lak_resource_data, atl_resource_data])
+
                 # Update load average graph
-                st.line_chart([lak_resource_data['Load Averages'][0], atl_resource_data['Load Averages'][0]])
+                load_chart_placeholder.line_chart([lak_resource_data['Load Averages'][0], atl_resource_data['Load Averages'][0]])
 
                 # Update CPU usage graph
-                st.line_chart([lak_resource_data['CPU Usage'], atl_resource_data['CPU Usage']])
+                cpu_chart_placeholder.line_chart([lak_resource_data['CPU Usage'], atl_resource_data['CPU Usage']])
 
                 # Update memory usage pie chart
                 fig, ax = plt.subplots(figsize=(4, 4))  # Smaller figure size
                 ax.pie([lak_resource_data['Memory']['Used'], lak_resource_data['Memory']['Free']],
                        labels=['Used', 'Free'], autopct='%1.1f%%')
-                st.pyplot(fig)
+                memory_chart_placeholder.pyplot(fig)
 
                 # Wait for the selected interval before updating
                 time.sleep(refresh_interval)
@@ -182,6 +192,7 @@ def main():
             st.error("Failed to retrieve system information.")
 
 if __name__ == "__main__":
+
     main()
 
 
