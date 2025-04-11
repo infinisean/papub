@@ -193,10 +193,6 @@ def main():
 
             # Create placeholders for dynamic content
             table_placeholder = st.empty()
-            load_chart_placeholder = st.empty()
-            cpu_chart_placeholder = st.empty()
-            memory_chart_placeholder_lak = st.empty()
-            memory_chart_placeholder_atl = st.empty()
 
             # Initialize lists to store historical data
             lak_load_history = []
@@ -227,33 +223,31 @@ def main():
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
-                    # Update load average graph
-                    load_chart_placeholder.line_chart({
+                    st.subheader("Load Averages")
+                    st.line_chart({
                         'LAK Load': lak_load_history,
                         'ATL Load': atl_load_history
                     })
 
                 with col2:
-                    # Update CPU usage graph
-                    cpu_chart_placeholder.line_chart({
+                    st.subheader("CPU Usage")
+                    st.line_chart({
                         'LAK CPU': lak_cpu_history,
                         'ATL CPU': atl_cpu_history
                     })
 
                 with col3:
-                    # Update memory usage pie chart for LAK
                     st.subheader("LAK Memory Usage")
                     fig_lak, ax_lak = plt.subplots(figsize=(3, 3))  # Smaller figure size
                     ax_lak.pie([lak_resource_data['Memory']['Used'], lak_resource_data['Memory']['Free']],
                                labels=['Used', 'Free'], autopct='%1.1f%%')
-                    memory_chart_placeholder_lak.pyplot(fig_lak)
+                    st.pyplot(fig_lak)
 
-                    # Update memory usage pie chart for ATL
                     st.subheader("ATL Memory Usage")
                     fig_atl, ax_atl = plt.subplots(figsize=(3, 3))  # Smaller figure size
                     ax_atl.pie([atl_resource_data['Memory']['Used'], atl_resource_data['Memory']['Free']],
                                labels=['Used', 'Free'], autopct='%1.1f%%')
-                    memory_chart_placeholder_atl.pyplot(fig_atl)
+                    st.pyplot(fig_atl)
 
                 # Wait for the selected interval before updating
                 time.sleep(refresh_interval)
