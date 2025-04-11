@@ -242,13 +242,15 @@ def main():
 
                 with col3:
                     # Update memory usage pie chart for LAK
-                    fig_lak, ax_lak = plt.subplots(figsize=(4, 4))  # Smaller figure size
+                    st.subheader("LAK Memory Usage")
+                    fig_lak, ax_lak = plt.subplots(figsize=(3, 3))  # Smaller figure size
                     ax_lak.pie([lak_resource_data['Memory']['Used'], lak_resource_data['Memory']['Free']],
                                labels=['Used', 'Free'], autopct='%1.1f%%')
                     memory_chart_placeholder_lak.pyplot(fig_lak)
 
                     # Update memory usage pie chart for ATL
-                    fig_atl, ax_atl = plt.subplots(figsize=(4, 4))  # Smaller figure size
+                    st.subheader("ATL Memory Usage")
+                    fig_atl, ax_atl = plt.subplots(figsize=(3, 3))  # Smaller figure size
                     ax_atl.pie([atl_resource_data['Memory']['Used'], atl_resource_data['Memory']['Free']],
                                labels=['Used', 'Free'], autopct='%1.1f%%')
                     memory_chart_placeholder_atl.pyplot(fig_atl)
