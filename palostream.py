@@ -40,33 +40,48 @@ def get_system_info(hostname, api_key):
 
     # Get basic system info
     system_info = api_request("<show><system><info></info></system></show>", "system_info")
-    #Write raw output to a file
-    with open(f"logs/{hostname}_system_info.xml", "w") as file:
-        file.write(system_info.text)
+    if system_info is not None:
+        # Write raw output to a file
+        with open(f"logs/{hostname}_system_info.xml", "w") as file:
+            file.write(ET.tostring(system_info, encoding='unicode'))
+    else:
+        print(f"Failed to retrieve system info for {hostname}")
 
     # Get license information
     license_info = api_request("<request><license><info></info></license></request>", "license_info")
-    # Write raw output to a file
-    with open(f"logs/{hostname}_license_info.xml", "w") as file:
-        file.write(license_info.text)
-        
+    if license_info is not None:
+        # Write raw output to a file
+        with open(f"logs/{hostname}_license_info.xml", "w") as file:
+            file.write(ET.tostring(license_info, encoding='unicode'))
+    else:
+        print(f"Failed to retrieve license info for {hostname}")
+
     # Get resource utilization
     resource_info = api_request("<show><system><resources></resources></system></show>", "resource_info")
-    # Write raw output to a file
-    with open(f"logs/{hostname}_resource_info.xml", "w") as file:
-        file.write(resource_info.text)
+    if resource_info is not None:
+        # Write raw output to a file
+        with open(f"logs/{hostname}_resource_info.xml", "w") as file:
+            file.write(ET.tostring(resource_info, encoding='unicode'))
+    else:
+        print(f"Failed to retrieve resource info for {hostname}")
 
     # Get interface information
     interface_info = api_request("<show><interface>all</interface></show>", "interface_info")
-    # Write raw output to a file
-    with open(f"logs/{hostname}_interface_info.xml", "w") as file:
-        file.write(interface_info.text)
+    if interface_info is not None:
+        # Write raw output to a file
+        with open(f"logs/{hostname}_interface_info.xml", "w") as file:
+            file.write(ET.tostring(interface_info, encoding='unicode'))
+    else:
+        print(f"Failed to retrieve interface info for {hostname}")
 
     # Get HA status
     ha_info = api_request("<show><high-availability><state></state></high-availability></show>", "ha_info")
-    # Write raw output to a file
-    with open(f"logs/{hostname}_ha_info.xml", "w") as file:
-        file.write(ha_info.text)
+    if ha_info is not None:
+        # Write raw output to a file
+        with open(f"logs/{hostname}_ha_info.xml", "w") as file:
+            file.write(ET.tostring(ha_info, encoding='unicode'))
+    else:
+        print(f"Failed to retrieve HA info for {hostname}")
 
     return {
         'system_info': system_info,
