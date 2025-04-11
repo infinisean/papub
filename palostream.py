@@ -193,6 +193,13 @@ def main():
             load_chart_placeholder = st.empty()
             cpu_chart_placeholder = st.empty()
             memory_chart_placeholder = st.empty()
+
+            # Initialize lists to store historical data
+            lak_load_history = []
+            atl_load_history = []
+            lak_cpu_history = []
+            atl_cpu_history = []
+
             # Set up dynamic updates for resource info
             while True:
                 # Re-query resource info
@@ -203,14 +210,26 @@ def main():
                 lak_resource_data = extract_info({'resource_info': lak_resource_info})
                 atl_resource_data = extract_info({'resource_info': atl_resource_info})
 
+                # Append new data to history
+                lak_load_history.append(lak_resource_data['Load Averages'][0])
+                atl_load_history.append(atl_resource_data['Load Averages'][0])
+                lak_cpu_history.append(lak_resource_data['CPU Usage'])
+                atl_cpu_history.append(atl_resource_data['CPU Usage'])
+
                 # Update the table with new data
                 table_placeholder.table([lak_resource_data, atl_resource_data])
 
                 # Update load average graph
-                load_chart_placeholder.line_chart([lak_resource_data['Load Averages'][0], atl_resource_data['Load Averages'][0]])
+                load_chart_placeholder.line_chart({
+                    'LAK Load': lak_load_history,
+                    'ATL Load': atl_load_history
+                })
 
                 # Update CPU usage graph
-                cpu_chart_placeholder.line_chart([lak_resource_data['CPU Usage'], atl_resource_data['CPU Usage']])
+                cpu_chart_placeholder.line_chart({
+                    'LAK CPU': lak_cpu_history,
+                    'ATL CPU': atl_cpu_history
+                })
 
                 # Update memory usage pie chart
                 fig, ax = plt.subplots(figsize=(4, 4))  # Smaller figure size
@@ -224,7 +243,6 @@ def main():
             st.error("Failed to retrieve system information.")
 
 if __name__ == "__main__":
-
     main()
 
 
