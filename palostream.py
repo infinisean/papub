@@ -40,18 +40,33 @@ def get_system_info(hostname, api_key):
 
     # Get basic system info
     system_info = api_request("<show><system><info></info></system></show>", "system_info")
+    #Write raw output to a file
+    with open(f"logs/{hostname}_system_info.xml", "w") as file:
+        file.write(system_info.text)
 
     # Get license information
     license_info = api_request("<request><license><info></info></license></request>", "license_info")
-
+    # Write raw output to a file
+    with open(f"logs/{hostname}_license_info.xml", "w") as file:
+        file.write(license_info.text)
+        
     # Get resource utilization
     resource_info = api_request("<show><system><resources></resources></system></show>", "resource_info")
+    # Write raw output to a file
+    with open(f"logs/{hostname}_resource_info.xml", "w") as file:
+        file.write(resource_info.text)
 
     # Get interface information
     interface_info = api_request("<show><interface>all</interface></show>", "interface_info")
+    # Write raw output to a file
+    with open(f"logs/{hostname}_interface_info.xml", "w") as file:
+        file.write(interface_info.text)
 
     # Get HA status
     ha_info = api_request("<show><high-availability><state></state></high-availability></show>", "ha_info")
+    # Write raw output to a file
+    with open(f"logs/{hostname}_ha_info.xml", "w") as file:
+        file.write(ha_info.text)
 
     return {
         'system_info': system_info,
@@ -93,8 +108,10 @@ def extract_info(info):
         cpu_line = next(line for line in resource_info if line.startswith("%Cpu"))
         with open("logs/cpu_debug.log", "a") as log_file:  # Log to file
             log_file.write(f"CPU Line: {cpu_line}\n")
-        cpu_idle = float(cpu_line.split()[-4].replace("id,", ""))
+        cpu_values = cpu_line.split()
+        cpu_idle = float(cpu_values[7].replace("id,", ""))  # Ensure correct index
         with open("logs/cpu_debug.log", "a") as log_file:  # Log to file
+            log_file.write(f"Parsed CPU Values: {cpu_values}\n")
             log_file.write(f"CPU Idle: {cpu_idle}\n")
         data['CPU Usage'] = 100 - cpu_idle
         with open("logs/cpu_debug.log", "a") as log_file:  # Log to file
@@ -194,7 +211,6 @@ def main():
 if __name__ == "__main__":
 
     main()
-
 
 
 
