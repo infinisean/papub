@@ -2,7 +2,8 @@ import streamlit as st
 import requests
 from xml.etree import ElementTree as ET
 import urllib3
-import os
+import os                                     
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
 import time
 import matplotlib.pyplot as plt
 
@@ -155,7 +156,7 @@ def extract_info(info):
 # Streamlit app
 def main():
     st.set_page_config(layout="wide")  # Set layout to wide for better alignment
-    st.title("Palo Alto Panorama Health Dashboard")
+    st.title("This... is... Sean's Palo Alto Recon Tool AAAAAnd...   <br/>more to come soon")
 
     # Check for the existence of the "testingkey" file
     api_key = None
@@ -163,21 +164,6 @@ def main():
         with open("testingkey", "r") as file:
             api_key = file.read().strip()
         st.info("Using API key from 'testingkey' file.")
-    else:
-        # Prompt for user credentials
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-
-        if st.button("Login"):
-            # Get API keys for both Panorama instances
-            lak_api_key = get_api_key('l17panorama', username, password)
-            atl_api_key = get_api_key('a46panorama', username, password)
-
-            if lak_api_key and atl_api_key:
-                st.success("Successfully obtained API keys.")
-                api_key = lak_api_key  # Use one of the keys for further operations
-            else:
-                st.error("Failed to obtain API keys. Please check your credentials.")
 
     if api_key:
         # Get system info for both Panorama instances
@@ -193,6 +179,23 @@ def main():
 
             # Create placeholders for dynamic content
             table_placeholder = st.empty()
+
+            # Organize graphs into columns
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.subheader("Load Averages")
+                load_chart_placeholder = st.empty()
+
+            with col2:
+                st.subheader("CPU Usage")
+                cpu_chart_placeholder = st.empty()
+
+            with col3:
+                st.subheader("LAK Memory Usage")
+                memory_chart_placeholder_lak = st.empty()
+                st.subheader("ATL Memory Usage")
+                memory_chart_placeholder_atl = st.empty()
 
             # Initialize lists to store historical data
             lak_load_history = []
@@ -219,35 +222,29 @@ def main():
                 # Update the table with new data
                 table_placeholder.table([lak_resource_data, atl_resource_data])
 
-                # Organize graphs into columns
-                col1, col2, col3 = st.columns(3)
+                # Update load average graph
+                load_chart_placeholder.line_chart({
+                    'LAK Load': lak_load_history,
+                    'ATL Load': atl_load_history
+                })
 
-                with col1:
-                    st.subheader("Load Averages")
-                    st.line_chart({
-                        'LAK Load': lak_load_history,
-                        'ATL Load': atl_load_history
-                    })
+                # Update CPU usage graph
+                cpu_chart_placeholder.line_chart({
+                    'LAK CPU': lak_cpu_history,
+                    'ATL CPU': atl_cpu_history
+                })
 
-                with col2:
-                    st.subheader("CPU Usage")
-                    st.line_chart({
-                        'LAK CPU': lak_cpu_history,
-                        'ATL CPU': atl_cpu_history
-                    })
+                # Update memory usage pie chart for LAK
+                fig_lak, ax_lak = plt.subplots(figsize=(3, 3))  # Smaller figure size
+                ax_lak.pie([lak_resource_data['Memory']['Used'], lak_resource_data['Memory']['Free']],
+                           labels=['Used', 'Free'], autopct='%1.1f%%')
+                memory_chart_placeholder_lak.pyplot(fig_lak)
 
-                with col3:
-                    st.subheader("LAK Memory Usage")
-                    fig_lak, ax_lak = plt.subplots(figsize=(3, 3))  # Smaller figure size
-                    ax_lak.pie([lak_resource_data['Memory']['Used'], lak_resource_data['Memory']['Free']],
-                               labels=['Used', 'Free'], autopct='%1.1f%%')
-                    st.pyplot(fig_lak)
-
-                    st.subheader("ATL Memory Usage")
-                    fig_atl, ax_atl = plt.subplots(figsize=(3, 3))  # Smaller figure size
-                    ax_atl.pie([atl_resource_data['Memory']['Used'], atl_resource_data['Memory']['Free']],
-                               labels=['Used', 'Free'], autopct='%1.1f%%')
-                    st.pyplot(fig_atl)
+                # Update memory usage pie chart for ATL
+                fig_atl, ax_atl = plt.subplots(figsize=(3, 3))  # Smaller figure size
+                ax_atl.pie([atl_resource_data['Memory']['Used'], atl_resource_data['Memory']['Free']],
+                           labels=['Used', 'Free'], autopct='%1.1f%%')
+                memory_chart_placeholder_atl.pyplot(fig_atl)
 
                 # Wait for the selected interval before updating
                 time.sleep(refresh_interval)
