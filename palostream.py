@@ -40,7 +40,7 @@ def get_system_info(hostname, api_key):
 
     # Get basic system info
     system_info = api_request("<show><system><info></info></system></show>", "system_info")
-    if system_info is not None:
+    if system_info is not None: 
         # Write raw output to a file
         with open(f"logs/{hostname}_system_info.xml", "w") as file:
             file.write(ET.tostring(system_info, encoding='unicode'))
