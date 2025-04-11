@@ -175,33 +175,50 @@ def main():
             refresh_interval = st.selectbox("Select refresh interval (seconds):", [10, 30, 60, 120, 300], index=2)
 
             # Select timespan for graphs
-            timespan = st.selectbox("Select timespan for graphs:", ["1 hour", "12 hours", "24 hours", "7 days"], index=0)
-
-            # Create placeholders for dynamic content
-            table_placeholder = st.empty()
-
-            # Organize graphs into columns
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.subheader("Load Averages")
-                load_chart_placeholder = st.empty()
-
-            with col2:
-                st.subheader("CPU Usage")
-                cpu_chart_placeholder = st.empty()
-
-            with col3:
-                st.subheader("LAK Memory Usage")
-                memory_chart_placeholder_lak = st.empty()
-                st.subheader("ATL Memory Usage")
-                memory_chart_placeholder_atl = st.empty()
+            timespan_options = {
+                "5 minutes": 5 * 60,
+                "30 minutes": 30 * 60,
+                "1 hour": 60 * 60,
+                "12 hours": 12 * 60 * 60,
+                "24 hours": 24 * 60 * 60,
+                "7 days": 7 * 24 * 60 * 60
+            }
+            timespan = st.selectbox("Select timespan for graphs:", list(timespan_options.keys()), index=0)
+            timespan_seconds = timespan_options[timespan]
 
             # Initialize lists to store historical data
             lak_load_history = []
             atl_load_history = []
             lak_cpu_history = []
             atl_cpu_history = []
+            lak_memory_history = []
+            atl_memory_history = []
+
+            # Organize graphs into columns
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.subheader("LAK Load Averages")
+                lak_load_chart_placeholder = st.empty()
+
+                st.subheader("LAK CPU Usage")
+                lak_cpu_chart_placeholder = st.empty()
+
+                st.subheader("LAK Memory Usage")
+                lak_memory_chart_placeholder = st.empty()
+
+            with col2:
+                st.subheader("ATL Load Averages")
+                atl_load_chart_placeholder = st.empty()
+
+                st.subheader("ATL CPU Usage")
+                atl_cpu_chart_placeholder = st.empty()
+
+                st.subheader("ATL Memory Usage")
+                atl_memory_chart_placeholder = st.empty()
+
+            # Create placeholder for the table
+            table_placeholder = st.empty()
 
             # Set up dynamic updates for resource info
             while True:
@@ -214,37 +231,70 @@ def main():
                 atl_resource_data = extract_info({'resource_info': atl_resource_info})
 
                 # Append new data to history
-                lak_load_history.append(lak_resource_data['Load Averages'][0])
-                atl_load_history.append(atl_resource_data['Load Averages'][0])
+                lak_load_history.append(lak_resource_data['Load Averages'])
+                atl_load_history.append(atl_resource_data['Load Averages'])
                 lak_cpu_history.append(lak_resource_data['CPU Usage'])
                 atl_cpu_history.append(atl_resource_data['CPU Usage'])
+                lak_memory_history.append(lak_resource_data['Memory'])
+                atl_memory_history.append(atl_resource_data['Memory'])
+
+                # Trim history to match the selected timespan
+                max_points = timespan_seconds // refresh_interval
+                lak_load_history = lak_load_history[-max_points:]
+                atl_load_history = atl_load_history[-max_points:]
+                lak_cpu_history = lak_cpu_history[-max_points:]
+                atl_cpu_history = atl_cpu_history[-max_points:]
+                lak_memory_history = lak_memory_history[-max_points:]
+                atl_memory_history = atl_memory_history[-max_points:]
+
+                # Update load average graph for LAK
+                lak_load_chart_placeholder.line_chart({
+                    '1 min': [load[0] for load in lak_load_history],
+                    '5 min': [load[1] for load in lak_load_history],
+                    '15 min': [load[2] for load in lak_load_history]
+                })
+
+                # Update CPU usage graph for LAK
+                lak_cpu_chart_placeholder.line_chart(lak_cpu_history)
+
+                # Update memory usage graph for LAK
+                fig_lak_mem, ax_lak_mem = plt.subplots(figsize=(5, 3))
+                ax_lak_mem.fill_between(range(len(lak_memory_history)),
+                                        [mem['Used'] for mem in lak_memory_history],
+                                        label='Used', color='red', alpha=0.5)
+                ax_lak_mem.fill_between(range(len(lak_memory_history)),
+                                        [mem['Total'] for mem in lak_memory_history],
+                                        [mem['Used'] for mem in lak_memory_history],
+                                        label='Free', color='green', alpha=0.5)
+                ax_lak_mem.set_ylim(0, max(mem['Total'] for mem in lak_memory_history))
+                ax_lak_mem.legend()
+                lak_memory_chart_placeholder.pyplot(fig_lak_mem)
+
+                # Update load average graph for ATL
+                atl_load_chart_placeholder.line_chart({
+                    '1 min': [load[0] for load in atl_load_history],
+                    '5 min': [load[1] for load in atl_load_history],
+                    '15 min': [load[2] for load in atl_load_history]
+                })
+
+                # Update CPU usage graph for ATL
+                atl_cpu_chart_placeholder.line_chart(atl_cpu_history)
+
+                # Update memory usage graph for ATL
+                fig_atl_mem, ax_atl_mem = plt.subplots(figsize=(5, 3))
+                ax_atl_mem.fill_between(range(len(atl_memory_history)),
+                                        [mem['Used'] for mem in atl_memory_history],
+                                        label='Used', color='red', alpha=0.5)
+                ax_atl_mem.fill_between(range(len(atl_memory_history)),
+                                        [mem['Total'] for mem in atl_memory_history],
+                                        [mem['Used'] for mem in atl_memory_history],
+                                        label='Free', color='green', alpha=0.5)
+                ax_atl_mem.set_ylim(0, max(mem['Total'] for mem in atl_memory_history))
+                ax_atl_mem.legend()
+                atl_memory_chart_placeholder.pyplot(fig_atl_mem)
 
                 # Update the table with new data
                 table_placeholder.table([lak_resource_data, atl_resource_data])
-
-                # Update load average graph
-                load_chart_placeholder.line_chart({
-                    'LAK Load': lak_load_history,
-                    'ATL Load': atl_load_history
-                })
-
-                # Update CPU usage graph
-                cpu_chart_placeholder.line_chart({
-                    'LAK CPU': lak_cpu_history,
-                    'ATL CPU': atl_cpu_history
-                })
-
-                # Update memory usage pie chart for LAK
-                fig_lak, ax_lak = plt.subplots(figsize=(3, 3))  # Smaller figure size
-                ax_lak.pie([lak_resource_data['Memory']['Used'], lak_resource_data['Memory']['Free']],
-                           labels=['Used', 'Free'], autopct='%1.1f%%')
-                memory_chart_placeholder_lak.pyplot(fig_lak)
-
-                # Update memory usage pie chart for ATL
-                fig_atl, ax_atl = plt.subplots(figsize=(3, 3))  # Smaller figure size
-                ax_atl.pie([atl_resource_data['Memory']['Used'], atl_resource_data['Memory']['Free']],
-                           labels=['Used', 'Free'], autopct='%1.1f%%')
-                memory_chart_placeholder_atl.pyplot(fig_atl)
 
                 # Wait for the selected interval before updating
                 time.sleep(refresh_interval)
