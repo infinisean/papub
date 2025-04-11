@@ -188,11 +188,15 @@ def main():
             # Select refresh interval
             refresh_interval = st.selectbox("Select refresh interval (seconds):", [10, 30, 60, 120, 300], index=2)
 
+            # Select timespan for graphs
+            timespan = st.selectbox("Select timespan for graphs:", ["1 hour", "12 hours", "24 hours", "7 days"], index=0)
+
             # Create placeholders for dynamic content
             table_placeholder = st.empty()
             load_chart_placeholder = st.empty()
             cpu_chart_placeholder = st.empty()
-            memory_chart_placeholder = st.empty()
+            memory_chart_placeholder_lak = st.empty()
+            memory_chart_placeholder_atl = st.empty()
 
             # Initialize lists to store historical data
             lak_load_history = []
@@ -219,23 +223,35 @@ def main():
                 # Update the table with new data
                 table_placeholder.table([lak_resource_data, atl_resource_data])
 
-                # Update load average graph
-                load_chart_placeholder.line_chart({
-                    'LAK Load': lak_load_history,
-                    'ATL Load': atl_load_history
-                })
+                # Organize graphs into columns
+                col1, col2, col3 = st.columns(3)
 
-                # Update CPU usage graph
-                cpu_chart_placeholder.line_chart({
-                    'LAK CPU': lak_cpu_history,
-                    'ATL CPU': atl_cpu_history
-                })
+                with col1:
+                    # Update load average graph
+                    load_chart_placeholder.line_chart({
+                        'LAK Load': lak_load_history,
+                        'ATL Load': atl_load_history
+                    })
 
-                # Update memory usage pie chart
-                fig, ax = plt.subplots(figsize=(4, 4))  # Smaller figure size
-                ax.pie([lak_resource_data['Memory']['Used'], lak_resource_data['Memory']['Free']],
-                       labels=['Used', 'Free'], autopct='%1.1f%%')
-                memory_chart_placeholder.pyplot(fig)
+                with col2:
+                    # Update CPU usage graph
+                    cpu_chart_placeholder.line_chart({
+                        'LAK CPU': lak_cpu_history,
+                        'ATL CPU': atl_cpu_history
+                    })
+
+                with col3:
+                    # Update memory usage pie chart for LAK
+                    fig_lak, ax_lak = plt.subplots(figsize=(4, 4))  # Smaller figure size
+                    ax_lak.pie([lak_resource_data['Memory']['Used'], lak_resource_data['Memory']['Free']],
+                               labels=['Used', 'Free'], autopct='%1.1f%%')
+                    memory_chart_placeholder_lak.pyplot(fig_lak)
+
+                    # Update memory usage pie chart for ATL
+                    fig_atl, ax_atl = plt.subplots(figsize=(4, 4))  # Smaller figure size
+                    ax_atl.pie([atl_resource_data['Memory']['Used'], atl_resource_data['Memory']['Free']],
+                               labels=['Used', 'Free'], autopct='%1.1f%%')
+                    memory_chart_placeholder_atl.pyplot(fig_atl)
 
                 # Wait for the selected interval before updating
                 time.sleep(refresh_interval)
