@@ -16,24 +16,6 @@ def main():
     pankey_path = os.path.join(base_dir, 'pankey')
     pacreds_path = os.path.join(base_dir, 'pacreds')
 
-    # Read the Panorama API key
-    if os.path.exists(pankey_path):
-        panorama_api_key = read_file(pankey_path)
-    else:
-        st.error("Panorama API key file 'pankey' not found.")
-        return
-
-    # Read the Palo Alto credentials
-    if os.path.exists(pacreds_path):
-        palo_creds = read_file(pacreds_path).split(',')
-        if len(palo_creds) != 2:
-            st.error("Palo Alto credentials file 'pacreds' is not formatted correctly.")
-            return
-        palo_username, palo_password = palo_creds
-    else:
-        st.error("Palo Alto credentials file 'pacreds' not found.")
-        return
-
     # Sidebar navigation
     st.sidebar.title("Navigation")
     nav_choice = st.sidebar.radio("Choose a tool:", ["Panorama Tools", "Palo FW Tools"])
@@ -45,94 +27,11 @@ def main():
             hostname = f"S{int(store_number):04d}MLANF01"
             st.sidebar.success(f"Hostname: {hostname}")
 
-            # Get API key for the specific firewall
-            api_key = get_api_key(hostname, palo_username, palo_password)
-            # this is failing, so we need to add debugging output here
-            st.sidebar.error("Failed to obtain API key for the specific firewall.")
-            # and print the actual return so we can evaluate it...
-            print(api_key)
-            
-            return
-
-            # Display the firewall tools
-            with st.expander("Firewall Tools"):
-                st.subheader("Firewall Health")
-                # Implement logic to gather and display firewall health data
-                while True:
-                    # Implement logic to read and display data from the files
-                    time.sleep(30)
-
-                st.subheader("Traffic Analysis")
-                # Implement logic to gather and display traffic analysis data
-                while True:
-                    # Implement logic to read and display data from the files
-                    time.sleep(30)
-
-                st.subheader("ARP Table")
-                # Implement logic to gather and display ARP table data
-                while True:
-                    # Implement logic to read and display data from the files
-                    time.sleep(30)
-
-                # Call the data gathering function
-                try:
-                    query_firewall_data(hostname, api_key)
-                except Exception as e:
-                    st.error(str(e))
-                    return
-                
-            
-            return
-
-        # Display the firewall tools
-        with st.expander("Firewall Tools"):
-            st.subheader("Firewall Health")
-            # Implement logic to gather and display firewall health data
-            while True:
-                # Implement logic to read and display data from the files
-                time.sleep(30)
-
-            st.subheader("Traffic Analysis")
-            # Implement logic to gather and display traffic analysis data
-            while True:
-                # Implement logic to read and display data from the files
-                time.sleep(30)
-
-            st.subheader("ARP Table")
-            # Implement logic to gather and display ARP table data
-            while True:
-                # Implement logic to read and display data from the files
-                time.sleep(30)
-
-            # Call the data gathering function
-            try:
-                query_firewall_data(hostname)
-            except Exception as e:
-                st.error(str(e))
-                return
-
-            # Tabs for different outputs
-            tab1, tab2 = st.tabs(["Firewall Health", "Traffic Analysis"])
-
-            with tab1:
-                st.subheader("Firewall Health")
-                # Periodically read and display data from the files
-                while True:
-                    # Implement logic to read and display data from the files
-                    time.sleep(30)
-
-            with tab2:
-                st.subheader("Traffic Analysis")
-                # Implement logic to read and display traffic analysis data
-                while True:
-                    # Implement logic to read and display data from the files
-                    time.sleep(30)
-
             # Call the data gathering function
             try:
                 query_firewall_data(store_number)
             except Exception as e:
-                st.error(str(e))
+                st.error(f"Error gathering data: {str(e)}")
                 return
 
             # Tabs for different outputs
