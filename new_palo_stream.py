@@ -1,11 +1,25 @@
 import streamlit as st
 import time
 import os
+import subprocess
 from palo_api_metrics import query_firewall_data
 
 def read_file(file_path):
     with open(file_path, 'r') as file:
         return file.read().strip()
+
+def ping_host(hostname):
+    try:
+        # Execute the ping command
+        result = subprocess.run(
+            ["ping", "-c", "100", "-i", "0.2", hostname],
+            capture_output=True,
+            text=True
+        )
+        # Return the output of the ping command
+        return result.stdout
+    except Exception as e:
+        return f"Error pinging host: {str(e)}"
 
 def main():
     st.set_page_config(layout="wide")
@@ -27,6 +41,10 @@ def main():
             hostname = f"S{int(store_number):04d}MLANF01"
             st.sidebar.success(f"Hostname: {hostname}")
 
+            # Ping the firewall and display the results
+            ping_results = ping_host(hostname)
+            st.sidebar.text_area("Ping Results", ping_results, height=200)
+
             # Call the data gathering function
             try:
                 query_firewall_data(store_number)
@@ -38,7 +56,6 @@ def main():
             tab1, tab2 = st.tabs(["Firewall Health", "ARP Table"])
 
             with tab1:
-                #st.subheader("Firewall Health")
                 st.write("Loading firewall health data...")
                 # Periodically read and display data from the files
                 #while True:
@@ -46,7 +63,6 @@ def main():
                 time.sleep(30)
 
             with tab2:
-                #st.subheader("ARP Table")
                 st.write("Loading ARP table data...")
                 # Periodically read and display data from the files
                 #while True:
