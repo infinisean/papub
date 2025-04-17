@@ -12,10 +12,11 @@ def ping_host(hostname):
     try:
         # Execute the ping command
         result = subprocess.run(
-            ["ping", "-c", "100", "-i", "0.2", hostname],
+            ["ping", "-c", "20", "-i", "0.05", "-w", ".05", hostname], stdout=subprocess.PIPE
             #capture_output=True,
-            text=True
+            #text=True
         )
+        print(result.stdout)
         # Return the output of the ping command
         return result.stdout
     except Exception as e:
