@@ -10,15 +10,13 @@ def ping_host(host, count=10, interval=0.1):
         result = ping(host, count=count, interval=interval)
 
         output.append(f"Pinging {host}:")
-        for packet in result.packets_sent:
-            # Simulate sending ping
-            time.sleep(interval)
+        output.append(f"Packets sent: {result.packets_sent}")
         
         if result.packets_received > 0:
-            output.append(f"{result.packets_received_count}/{result.packets_sent_count} packets received, {result.packet_loss * 100:.1f}% packet loss")
-            if result.packets_received_count > 0:
+            output.append(f"{result.packets_received}/{result.packets_sent} packets received, {result.packet_loss * 100:.1f}% packet loss")
+            if result.packets_received > 0:
                 output.append("RTT min/avg/max/stddev:")
-                output.append(f"{result.min_rtt:.3f}/{result.avg_rtt:.3f}/{result.max_rtt:.3f}/{result.stddev_rtt:.3f} ms")
+                output.append(f"{result.min_rtt:.3f}/{result.avg_rtt:.3f}/{result.max_rtt:.3f}/{result.jitter:.3f} ms")
         else:
             output.append(f"{host} didn't reply.")
     except Exception as e:
@@ -56,15 +54,13 @@ def main():
                 st.error(f"Error gathering data: {str(e)}")
                 return
 
-            # Tabs for different outputs
-            tab1, tab2 = st.tabs(["Firewall Health", "ARP Table"])
-
-            with tab1:
+            # Expanders for different outputs
+            with st.expander("Firewall Health"):
                 st.write("Loading firewall health data...")
                 # Implement logic to read and display data from the files
                 time.sleep(30)
 
-            with tab2:
+            with st.expander("ARP Table"):
                 st.write("Loading ARP table data...")
                 # Implement logic to read and display ARP table data
                 time.sleep(30)
