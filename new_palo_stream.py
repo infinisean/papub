@@ -15,8 +15,8 @@ def ping_host(host, count=10, interval=0.1):
         if result.packets_received > 0:
             output.append(f"{result.packets_received}/{result.packets_sent} packets received, {result.packet_loss * 100:.1f}% packet loss")
             if result.packets_received > 0:
-                output.append("RTT min/avg/max/stddev:")
-                output.append(f"{result.min_rtt:.3f}/{result.avg_rtt:.3f}/{result.max_rtt:.3f}/{result.jitter:.3f} ms")
+                output.append("RTT min/avg/max:")
+                output.append(f"{result.min_rtt:.3f}/{result.avg_rtt:.3f}/{result.max_rtt:.3f} ms")
         else:
             output.append(f"{host} didn't reply.")
     except Exception as e:
