@@ -38,18 +38,24 @@ def main():
             tab1, tab2 = st.tabs(["Firewall Health", "ARP Table"])
 
             with tab1:
-                st.subheader("Firewall Health")
+                #st.subheader("Firewall Health")
+                st.write("Loading firewall health data...")
                 # Periodically read and display data from the files
-                while True:
+                #while True:
                     # Implement logic to read and display data from the files
-                    time.sleep(30)
+                time.sleep(30)
 
             with tab2:
-                st.subheader("ARP Table")
-                # Implement logic to read and display ARP table data
-                while True:
+                #st.subheader("ARP Table")
+                st.write("Loading ARP table data...")
+                # Periodically read and display data from the files
+                #while True:
                     # Implement logic to read and display data from the files
-                    time.sleep(30)
+                time.sleep(30)
+                # Implement logic to read and display ARP table data
+                #while True:
+                    # Implement logic to read and display data from the files
+                #time.sleep(30)
 
         else:
             st.sidebar.error("Please enter a valid store number between 1 and 3000.")

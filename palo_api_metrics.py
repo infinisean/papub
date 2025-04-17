@@ -36,7 +36,7 @@ def query_firewall_data(store_number):
         print("Panorama API key file found")
         panorama_api_key = read_file(pankey_path)
     else:
-        raise FileNotFoundError("Panorama API key file 'pankey' not found.")
+        raise FileNotFoundError("Panorama API key file '{pankey_path}' not found.")
 
     # Read the Palo Alto credentials
     print(f"Checking if Palo Alto credentials file exists at: {pacreds_path}")
