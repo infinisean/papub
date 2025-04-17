@@ -36,7 +36,7 @@ def query_firewall_data(store_number):
         print("Panorama API key file found")
         panorama_api_key = read_file(pankey_path)
     else:
-        raise FileNotFoundError("Panorama API key file '{pankey_path}' not found.")
+        raise FileNotFoundError(f"Panorama API key file '{pankey_path}' not found.")
 
     # Read the Palo Alto credentials
     print(f"Checking if Palo Alto credentials file exists at: {pacreds_path}")
@@ -57,7 +57,7 @@ def query_firewall_data(store_number):
         'cpu_usage': "<show><system><resources></resources></system></show>",
         'ram_usage': "<show><system><resources></resources></system></show>",
         'concurrent_connections': "<show><session><info></info></session></show>",
-        'arp_table': "<show><arp><all></all></arp></show>"
+        'arp_table': "<show><arp><entry name='all'></entry></arp></show>"  # Updated ARP command
     }
 
     headers = {'X-PAN-KEY': api_key}
