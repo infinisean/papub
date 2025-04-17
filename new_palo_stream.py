@@ -47,6 +47,86 @@ def main():
 
             # Get API key for the specific firewall
             api_key = get_api_key(hostname, palo_username, palo_password)
+            # this is failing, so we need to add debugging output here
+            st.sidebar.error("Failed to obtain API key for the specific firewall.")
+            # and print the actual return so we can evaluate it...
+            print(api_key)
+            
+            return
+
+            # Display the firewall tools
+            with st.expander("Firewall Tools"):
+                st.subheader("Firewall Health")
+                # Implement logic to gather and display firewall health data
+                while True:
+                    # Implement logic to read and display data from the files
+                    time.sleep(30)
+
+                st.subheader("Traffic Analysis")
+                # Implement logic to gather and display traffic analysis data
+                while True:
+                    # Implement logic to read and display data from the files
+                    time.sleep(30)
+
+                st.subheader("ARP Table")
+                # Implement logic to gather and display ARP table data
+                while True:
+                    # Implement logic to read and display data from the files
+                    time.sleep(30)
+
+                # Call the data gathering function
+                try:
+                    query_firewall_data(hostname, api_key)
+                except Exception as e:
+                    st.error(str(e))
+                    return
+                
+            
+            return
+
+        # Display the firewall tools
+        with st.expander("Firewall Tools"):
+            st.subheader("Firewall Health")
+            # Implement logic to gather and display firewall health data
+            while True:
+                # Implement logic to read and display data from the files
+                time.sleep(30)
+
+            st.subheader("Traffic Analysis")
+            # Implement logic to gather and display traffic analysis data
+            while True:
+                # Implement logic to read and display data from the files
+                time.sleep(30)
+
+            st.subheader("ARP Table")
+            # Implement logic to gather and display ARP table data
+            while True:
+                # Implement logic to read and display data from the files
+                time.sleep(30)
+
+            # Call the data gathering function
+            try:
+                query_firewall_data(hostname)
+            except Exception as e:
+                st.error(str(e))
+                return
+
+            # Tabs for different outputs
+            tab1, tab2 = st.tabs(["Firewall Health", "Traffic Analysis"])
+
+            with tab1:
+                st.subheader("Firewall Health")
+                # Periodically read and display data from the files
+                while True:
+                    # Implement logic to read and display data from the files
+                    time.sleep(30)
+
+            with tab2:
+                st.subheader("Traffic Analysis")
+                # Implement logic to read and display traffic analysis data
+                while True:
+                    # Implement logic to read and display data from the files
+                    time.sleep(30)
 
             # Call the data gathering function
             try:
