@@ -13,7 +13,7 @@ def ping_host(hostname):
         # Execute the ping command
         result = subprocess.run(
             ["ping", "-c", "100", "-i", "0.2", hostname],
-            capture_output=True,
+            #capture_output=True,
             text=True
         )
         # Return the output of the ping command
