@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 import os
-from data_gathering import query_firewall_data, get_api_key
+from palo_api_metrics import query_firewall_data
 
 def read_file(file_path):
     with open(file_path, 'r') as file:
@@ -48,19 +48,29 @@ def main():
             # Get API key for the specific firewall
             api_key = get_api_key(hostname, palo_username, palo_password)
 
+            # Call the data gathering function
+            try:
+                query_firewall_data(store_number)
+            except Exception as e:
+                st.error(str(e))
+                return
+
             # Tabs for different outputs
             tab1, tab2 = st.tabs(["Firewall Health", "ARP Table"])
 
             with tab1:
                 st.subheader("Firewall Health")
-                # Call your data gathering function
-                query_firewall_data(hostname, api_key)
-                # Display graphs for CPU, RAM, etc.
+                # Periodically read and display data from the files
+                while True:
+                    # Implement logic to read and display data from the files
+                    time.sleep(30)
 
             with tab2:
                 st.subheader("ARP Table")
-                # Display ARP table and handle updates
-                # Implement highlighting logic for new/disappearing entries
+                # Implement logic to read and display ARP table data
+                while True:
+                    # Implement logic to read and display data from the files
+                    time.sleep(30)
 
         else:
             st.sidebar.error("Please enter a valid store number between 1 and 3000.")
