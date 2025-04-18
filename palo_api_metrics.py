@@ -6,6 +6,47 @@ import argparse
 import logging
 from xml.etree import ElementTree as ET
 
+def get_pan_connected_devices(panorama):
+    # Define the API command to retrieve connected devices
+    command = "<show><devices><connected></connected></devices></show>"
+
+    # Update the base directory to include the .cred directory
+    base_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.cred')
+    pankey_path = os.path.join(base_dir, 'pankey')
+
+    # Read the Panorama API key
+    logging.debug(f"Checking if Panorama API key file exists at: {pankey_path}")
+    if os.path.exists(pankey_path):
+        logging.debug("Panorama API key file found")
+        panorama_api_key = read_file(pankey_path)
+    else:
+        raise FileNotFoundError(f"Panorama API key file '{pankey_path}' not found.")
+
+    headers = {'X-PAN-KEY': panorama_api_key}
+    url = f"https://{panorama}/api/?type=op&cmd={command}"
+    logging.debug(f"Sending request to Panorama: {url}")
+    response = requests.get(url, headers=headers, verify=False)
+
+    devices_data = []
+    if response.status_code == 200:
+        xml_response = ET.fromstring(response.text)
+        devices = xml_response.findall('.//entry')
+        for device in devices:
+            hostname = device.find('hostname').text if device.find('hostname') is not None else 'N/A'
+            model = device.find('model').text if device.find('model') is not None else 'N/A'
+            serial = device.find('serial').text if device.find('serial') is not None else 'N/A'
+            mgmt_ip = device.find('ip-address').text if device.find('ip-address') is not None else 'N/A'
+            devices_data.append({
+                'hostname': hostname,
+                'model': model,
+                'serial': serial,
+                'mgmt_ip': mgmt_ip
+            })
+    else:
+        logging.error(f"Failed to retrieve connected devices from {panorama}. Status code: {response.status_code}")
+
+    return devices_data
+
 def setup_logging(debug_mode):
     log_format = '%(asctime)s - %(levelname)s - %(message)s'
     logging.basicConfig(filename='metrics.log', level=logging.DEBUG, format=log_format)
@@ -169,7 +210,16 @@ def main():
 
     setup_logging(args.debug)
     logging.debug(f"Invocation method: {args.invocation}")
-    query_firewall_data(args.store_number, args.live_db)
+
+        # Example usage of get_pan_connected_devices
+    panorama_instances = ['a46panorama', 'l17panorama']  # Replace with actual Panorama hostnames
+    for panorama in panorama_instances:
+        devices = get_pan_connected_devices(panorama)
+        for device in devices:
+            print(f"Hostname: {device['hostname']}, Model: {device['model']}, Serial: {device['serial']}, Mgmt IP: {device['mgmt_ip']}")
+        print(f"Total connected devices from {panorama}: {len(devices)}")
+
+    # query_firewall_data(args.store_number, args.live_db)
 
 if __name__ == "__main__":
     main()
