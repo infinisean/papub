@@ -24,7 +24,7 @@ def get_pan_connected_devices(panorama):
         raise FileNotFoundError(f"Panorama API key file '{pankey_path}' not found.")
 
     headers = {'X-PAN-KEY': panorama_api_key}
-    url = f"https://{panorama}/api/?type=op&cmd={command}"
+    url = f"https://{panorama}/api/?type=op&amp;cmd={command}"
     logging.debug(f"Sending request to Panorama: {url}")
     response = requests.get(url, headers=headers, verify=False)
 
@@ -107,7 +107,7 @@ def get_api_key(hostname, username, password):
     logging.error("API key generation failed")
     return None
 
-def query_firewall_data(store_number, live_db):
+def query_firewall_data(hostname, live_db):
     # Use the absolute path for the credentials directory
     base_dir = '/home/netmonitor/.cred'
     pankey_path = os.path.join(base_dir, 'pankey')
@@ -132,7 +132,7 @@ def query_firewall_data(store_number, live_db):
     else:
         raise FileNotFoundError("Palo Alto credentials file 'pacreds' not found.")
 
-    hostname = f"S{int(store_number):04d}MLANF01"
+    # Use the hostname directly
     api_key = get_api_key(hostname, palo_username, palo_password)
 
     # Define the API endpoints and commands
@@ -144,18 +144,18 @@ def query_firewall_data(store_number, live_db):
     headers = {'X-PAN-KEY': api_key}
 
     for metric, cmd in commands.items():
-        url = f"https://{hostname}/api/?type=op&cmd={cmd}"
+        url = f"https://{hostname}/api/?type=op&amp;cmd={cmd}"
         logging.debug(f"Sending request to URL: {url}")
         response = requests.get(url, headers=headers, verify=False)
         if response.status_code == 200:
             if metric == 'system_resources':
-                parse_system_resources(response.text, hostname, store_number, live_db)
+                parse_system_resources(response.text, hostname, live_db)
             else:
                 logging.debug(f"Received data for {metric}")
         else:
             logging.error(f"Failed to retrieve data for {metric}. Status code: {response.status_code}")
 
-def parse_system_resources(response_text, hostname, store_number, live_db):
+def parse_system_resources(response_text, hostname, live_db):
     # Extract the relevant lines from the response
     lines = response_text.splitlines()
     try:
@@ -192,10 +192,10 @@ def parse_system_resources(response_text, hostname, store_number, live_db):
         return
 
     # Prepare data for insertion
-    data = (hostname, uptime, one_min_load, cpu_usage, mem_used, mem_free, store_number)
+    data = (hostname, uptime, one_min_load, cpu_usage, mem_used, mem_free)
     insert_query = """
-    INSERT INTO system_resources (hostname, last_boot, one_min_load, cpu_usage, mem_used, mem_free, retail_store)
-    VALUES (%s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO system_resources (hostname, last_boot, one_min_load, cpu_usage, mem_used, mem_free)
+    VALUES (%s, %s, %s, %s, %s, %s)
     """
 
     if live_db:

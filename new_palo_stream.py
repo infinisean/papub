@@ -112,6 +112,9 @@ def main():
                 hostname = device_info['hostname']
                 st.sidebar.success(f"Selected Hostname: {hostname}")
 
+                # Debugging: Print the hostname being used
+                st.sidebar.text(f"Debug: Using hostname {hostname} for data query")
+
                 # Ping the firewall and display the results
                 ping_results = ping_host(hostname)
                 st.sidebar.text_area("Ping Results", ping_results, height=200)
