@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 import os
-from palo_api_metrics import query_firewall_data
+from palo_api_metrics import query_firewall_data, get_pan_connected_devices
 from icmplib import ping
 
 def ping_host(host, count=10, interval=0.1):
@@ -28,6 +28,40 @@ def read_file(file_path):
     with open(file_path, 'r') as file:
         return file.read().strip()
 
+def show_devices():
+    st.title("Connected Devices")
+
+    # Retrieve devices from Panorama
+    panorama_instances = ['a46panorama', 'l17panorama']  # Replace with actual Panorama hostnames
+    all_devices = []
+    for panorama in panorama_instances:
+        devices = get_pan_connected_devices(panorama)
+        all_devices.extend(devices)
+
+    # Convert to DataFrame for display
+    import pandas as pd
+    df = pd.DataFrame(all_devices)
+
+    # Create search boxes and selector
+    hostname_search = st.text_input("Search Hostname")
+    serial_search = st.text_input("Search Serial")
+    ip_search = st.text_input("Search IP")
+    model_options = df['model'].unique()
+    model_filter = st.selectbox("Filter by Model", options=["All"] + list(model_options))
+
+    # Filter the DataFrame based on search inputs
+    if hostname_search:
+        df = df[df['hostname'].str.contains(hostname_search, case=False, na=False)]
+    if serial_search:
+        df = df[df['serial'].str.contains(serial_search, case=False, na=False)]
+    if ip_search:
+        df = df[df['mgmt_ip'].str.contains(ip_search, case=False, na=False)]
+    if model_filter != "All":
+        df = df[df['model'] == model_filter]
+
+    # Display the filtered DataFrame
+    st.dataframe(df)
+
 def main():
     st.set_page_config(layout="wide")
     st.title("Palo Alto Network Monitoring Tool")
@@ -36,7 +70,10 @@ def main():
     st.sidebar.title("Navigation")
     nav_choice = st.sidebar.radio("Choose a tool:", ["Panorama Tools", "Palo FW Tools"])
 
-    if nav_choice == "Palo FW Tools":
+    if nav_choice == "Panorama Tools":
+        show_devices()
+
+    elif nav_choice == "Palo FW Tools":
         store_number = st.sidebar.text_input("Enter Store Number (1-3000):", "")
         
         if store_number.isdigit() and 1 <= int(store_number) <= 3000:
