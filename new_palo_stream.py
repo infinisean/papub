@@ -29,9 +29,8 @@ def ping_host(host, count=10, interval=0.1):
         
         if result.packets_received > 0:
             output.append(f"{result.packets_received}/{result.packets_sent} packets received, {result.packet_loss * 100:.1f}% packet loss")
-            if result.packets_received > 0:
-                output.append("RTT min/avg/max:")
-                output.append(f"{result.min_rtt:.3f}/{result.avg_rtt:.3f}/{result.max_rtt:.3f} ms")
+            output.append("RTT min/avg/max:")
+            output.append(f"{result.min_rtt:.3f}/{result.avg_rtt:.3f}/{result.max_rtt:.3f} ms")
         else:
             output.append(f"{host} didn't reply.")
     except Exception as e:
@@ -117,7 +116,7 @@ def main():
                 ping_results = ping_host(hostname)
                 st.sidebar.text_area("Ping Results", ping_results, height=200)
 
-                # Call the data gathering function with live_db set to False
+                # Call the data gathering function with the hostname
                 try:
                     query_firewall_data(hostname, live_db=False)
                 except Exception as e:
