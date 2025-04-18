@@ -53,11 +53,16 @@ def show_devices():
         return
 
     # Create search boxes and selector
-    hostname_search = st.text_input("Search Hostname")
-    serial_search = st.text_input("Search Serial")
-    ip_search = st.text_input("Search IP")
-    model_options = df['model'].unique()
-    model_filter = st.selectbox("Filter by Model", options=["All"] + list(model_options))
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        hostname_search = st.text_input("Search Hostname")
+    with col2:
+        serial_search = st.text_input("Search Serial")
+    with col3:
+        ip_search = st.text_input("Search IP")
+    with col4:
+        model_options = df['model'].unique()
+        model_filter = st.selectbox("Filter by Model", options=["All"] + list(model_options))
 
     # Filter the DataFrame based on search inputs
     if hostname_search:
@@ -82,9 +87,7 @@ def main():
 
     if nav_choice == "Panorama Tools":
         st.sidebar.subheader("Panorama Tools")
-        pan_tool_choice = st.sidebar.radio("Choose a Panorama Tool:", ["Show Devices"], index=0)
-        
-        if pan_tool_choice == "Show Devices":
+        if st.sidebar.button("Show Devices"):
             show_devices()
 
     elif nav_choice == "Palo FW Tools":
