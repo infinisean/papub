@@ -8,10 +8,10 @@ from xml.etree import ElementTree as ET
 
 def get_pan_connected_devices(panorama):
     # Define the API command to retrieve connected devices
-    command = "<show><devices><connected></connected></devices></show>"
+    command = "&lt;show&gt;&lt;devices&gt;&lt;connected&gt;&lt;/connected&gt;&lt;/devices&gt;&lt;/show&gt;"
 
-    # Update the base directory to include the .cred directory
-    base_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.cred')
+    # Update the base directory to include the ../.cred directory
+    base_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '../.cred')
     pankey_path = os.path.join(base_dir, 'pankey')
 
     # Read the Panorama API key
@@ -23,7 +23,7 @@ def get_pan_connected_devices(panorama):
         raise FileNotFoundError(f"Panorama API key file '{pankey_path}' not found.")
 
     headers = {'X-PAN-KEY': panorama_api_key}
-    url = f"https://{panorama}/api/?type=op&cmd={command}"
+    url = f"https://{panorama}/api/?type=op&amp;cmd={command}"
     logging.debug(f"Sending request to Panorama: {url}")
     response = requests.get(url, headers=headers, verify=False)
 
@@ -65,8 +65,8 @@ def read_file(file_path):
     return content
 
 def get_db_credentials():
-    # Update the path to look in the .cred directory
-    dbcreds_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.cred', 'dbcreds')
+    # Update the path to look in the ../.cred directory
+    dbcreds_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '../.cred', 'dbcreds')
     logging.debug(f"Checking if DB credentials file exists at: {dbcreds_path}")
     if os.path.exists(dbcreds_path):
         logging.debug("DB credentials file found")
@@ -91,7 +91,7 @@ def get_api_key(hostname, username, password):
     return None
 
 def query_firewall_data(store_number, live_db):
-    # Update the base directory to include the .cred directory
+    # Update the base directory to include the ../.cred directory
     base_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '../.cred')
     pankey_path = os.path.join(base_dir, 'pankey')
     pacreds_path = os.path.join(base_dir, 'pacreds')
@@ -120,14 +120,14 @@ def query_firewall_data(store_number, live_db):
 
     # Define the API endpoints and commands
     commands = {
-        'system_resources': "<show><system><resources></resources></system></show>",
-        'arp_table': "<show><arp><entry name='all'></entry></arp></show>"  # Updated ARP command
+        'system_resources': "&lt;show&gt;&lt;system&gt;&lt;resources&gt;&lt;/resources&gt;&lt;/system&gt;&lt;/show&gt;",
+        'arp_table': "&lt;show&gt;&lt;arp&gt;&lt;entry name='all'&gt;&lt;/entry&gt;&lt;/arp&gt;&lt;/show&gt;"  # Updated ARP command
     }
 
     headers = {'X-PAN-KEY': api_key}
 
     for metric, cmd in commands.items():
-        url = f"https://{hostname}/api/?type=op&cmd={cmd}"
+        url = f"https://{hostname}/api/?type=op&amp;cmd={cmd}"
         logging.debug(f"Sending request to URL: {url}")
         response = requests.get(url, headers=headers, verify=False)
         if response.status_code == 200:
@@ -211,7 +211,7 @@ def main():
     setup_logging(args.debug)
     logging.debug(f"Invocation method: {args.invocation}")
 
-        # Example usage of get_pan_connected_devices
+    # Example usage of get_pan_connected_devices
     panorama_instances = ['a46panorama', 'l17panorama']  # Replace with actual Panorama hostnames
     for panorama in panorama_instances:
         devices = get_pan_connected_devices(panorama)
