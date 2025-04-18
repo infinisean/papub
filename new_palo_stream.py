@@ -39,8 +39,18 @@ def show_devices():
         devices = get_pan_connected_devices(panorama)
         all_devices.extend(devices)
 
+    # Check if any devices were retrieved
+    if not all_devices:
+        st.error("No devices found.")
+        return
+
     # Convert to DataFrame for display
     df = pd.DataFrame(all_devices)
+
+    # Check if the 'model' column exists
+    if 'model' not in df.columns:
+        st.error("The 'model' column is missing from the data.")
+        return
 
     # Create search boxes and selector
     hostname_search = st.text_input("Search Hostname")
@@ -71,12 +81,14 @@ def main():
     nav_choice = st.sidebar.radio("Choose a tool:", ["Select", "Panorama Tools", "Palo FW Tools"], index=0)
 
     if nav_choice == "Panorama Tools":
-        pan_tool_choice = st.sidebar.radio("Choose a Panorama Tool:", ["Show Devices"])
+        st.sidebar.subheader("Panorama Tools")
+        pan_tool_choice = st.sidebar.radio("Choose a Panorama Tool:", ["Show Devices"], index=0)
         
         if pan_tool_choice == "Show Devices":
             show_devices()
 
     elif nav_choice == "Palo FW Tools":
+        st.sidebar.subheader("Palo FW Tools")
         store_number = st.sidebar.text_input("Enter Store Number (1-3000):", "")
         
         if store_number.isdigit() and 1 <= int(store_number) <= 3000:
