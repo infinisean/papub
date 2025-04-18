@@ -3,6 +3,7 @@ import time
 import os
 from palo_api_metrics import query_firewall_data, get_pan_connected_devices
 from icmplib import ping
+import pandas as pd
 
 def ping_host(host, count=10, interval=0.1):
     output = []
@@ -39,7 +40,6 @@ def show_devices():
         all_devices.extend(devices)
 
     # Convert to DataFrame for display
-    import pandas as pd
     df = pd.DataFrame(all_devices)
 
     # Create search boxes and selector
@@ -68,10 +68,13 @@ def main():
 
     # Sidebar navigation
     st.sidebar.title("Navigation")
-    nav_choice = st.sidebar.radio("Choose a tool:", ["Panorama Tools", "Palo FW Tools"])
+    nav_choice = st.sidebar.radio("Choose a tool:", ["Select", "Panorama Tools", "Palo FW Tools"], index=0)
 
     if nav_choice == "Panorama Tools":
-        show_devices()
+        pan_tool_choice = st.sidebar.radio("Choose a Panorama Tool:", ["Show Devices"])
+        
+        if pan_tool_choice == "Show Devices":
+            show_devices()
 
     elif nav_choice == "Palo FW Tools":
         store_number = st.sidebar.text_input("Enter Store Number (1-3000):", "")
