@@ -9,7 +9,7 @@ from xml.dom import minidom
 
 def get_pan_connected_devices(panorama):
     # Define the API command to retrieve connected devices
-    command = "<show><devices><connected></connected></devices></show>"
+    command = "&lt;show&gt;&lt;devices&gt;&lt;connected&gt;&lt;/connected&gt;&lt;/devices&gt;&lt;/show&gt;"
 
     # Update the base directory to include the ../.cred directory
     base_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '../.cred')
@@ -24,7 +24,7 @@ def get_pan_connected_devices(panorama):
         raise FileNotFoundError(f"Panorama API key file '{pankey_path}' not found.")
 
     headers = {'X-PAN-KEY': panorama_api_key}
-    url = f"https://{panorama}/api/?type=op&cmd={command}"
+    url = f"https://{panorama}/api/?type=op&amp;cmd={command}"
     logging.debug(f"Sending request to Panorama: {url}")
     response = requests.get(url, headers=headers, verify=False)
 
@@ -134,14 +134,14 @@ def query_firewall_data(store_number, live_db):
 
     # Define the API endpoints and commands
     commands = {
-        'system_resources': "<show><system><resources></resources></system></show>",
-        'arp_table': "<show><arp><entry name='all'></entry></arp></show>"  # Updated ARP command
+        'system_resources': "&lt;show&gt;&lt;system&gt;&lt;resources&gt;&lt;/resources&gt;&lt;/system&gt;&lt;/show&gt;",
+        'arp_table': "&lt;show&gt;&lt;arp&gt;&lt;entry name='all'&gt;&lt;/entry&gt;&lt;/arp&gt;&lt;/show&gt;"  # Updated ARP command
     }
 
     headers = {'X-PAN-KEY': api_key}
 
     for metric, cmd in commands.items():
-        url = f"https://{hostname}/api/?type=op&cmd={cmd}"
+        url = f"https://{hostname}/api/?type=op&amp;cmd={cmd}"
         logging.debug(f"Sending request to URL: {url}")
         response = requests.get(url, headers=headers, verify=False)
         if response.status_code == 200:
@@ -229,9 +229,13 @@ def main():
     panorama_instances = ['a46panorama', 'l17panorama']  # Replace with actual Panorama hostnames
     for panorama in panorama_instances:
         devices = get_pan_connected_devices(panorama)
-        for device in devices:
+        
+        # Sort devices by hostname
+        sorted_devices = sorted(devices, key=lambda x: x['hostname'])
+        
+        for device in sorted_devices:
             print(f"Hostname: {device['hostname']}, Model: {device['model']}, Serial: {device['serial']}, Mgmt IP: {device['mgmt_ip']}")
-        print(f"Total connected devices from {panorama}: {len(devices)}")
+        print(f"Total connected devices from {panorama}: {len(sorted_devices)}")
 
     # query_firewall_data(args.store_number, args.live_db)
 
