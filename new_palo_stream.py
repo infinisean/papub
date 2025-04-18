@@ -57,12 +57,13 @@ def show_devices():
     with col1:
         hostname_search = st.text_input("Search Hostname")
     with col2:
-        serial_search = st.text_input("Search Serial")
-    with col3:
-        ip_search = st.text_input("Search IP")
-    with col4:
         model_options = df['model'].unique()
         model_filter = st.selectbox("Filter by Model", options=["All"] + list(model_options))
+    with col3:
+        serial_search = st.text_input("Search Serial")
+    with col4:
+        ip_search = st.text_input("Search IP")
+
 
     # Filter the DataFrame based on search inputs
     if hostname_search:
