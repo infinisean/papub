@@ -24,7 +24,8 @@ def read_file(file_path):
     return content
 
 def get_db_credentials():
-    dbcreds_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dbcreds')
+    # Update the path to look in the .cred directory
+    dbcreds_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.cred', 'dbcreds')
     logging.debug(f"Checking if DB credentials file exists at: {dbcreds_path}")
     if os.path.exists(dbcreds_path):
         logging.debug("DB credentials file found")
@@ -48,9 +49,9 @@ def get_api_key(hostname, username, password):
     logging.error("API key generation failed")
     return None
 
-def query_firewall_data(store_number):
-    # Construct file paths for the API key and credentials
-    base_dir = os.path.dirname(os.path.dirname(__file__))  # One directory level up
+def query_firewall_data(store_number, live_db):
+    # Update the base directory to include the .cred directory
+    base_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.cred')
     pankey_path = os.path.join(base_dir, 'pankey')
     pacreds_path = os.path.join(base_dir, 'pacreds')
 
@@ -90,73 +91,83 @@ def query_firewall_data(store_number):
         response = requests.get(url, headers=headers, verify=False)
         if response.status_code == 200:
             if metric == 'system_resources':
-                parse_system_resources(response.text, hostname)
+                parse_system_resources(response.text, hostname, store_number, live_db)
             else:
                 logging.debug(f"Received data for {metric}")
         else:
             logging.error(f"Failed to retrieve data for {metric}. Status code: {response.status_code}")
 
-def parse_system_resources(response_text, hostname):
+def parse_system_resources(response_text, hostname, store_number, live_db):
     # Extract the relevant lines from the response
     lines = response_text.splitlines()
-    uptime_line = next(line for line in lines if "up" in line)
-    load_avg_line = next(line for line in lines if "load average" in line)
-    cpu_line = next(line for line in lines if "%Cpu(s)" in line)
-    mem_line = next(line for line in lines if "MiB Mem" in line)
+    try:
+        uptime_line = next(line for line in lines if "up" in line)
+        load_avg_line = next(line for line in lines if "load average" in line)
+        cpu_line = next(line for line in lines if "%Cpu(s)" in line)
+        mem_line = next(line for line in lines if "MiB Mem" in line)
+    except StopIteration as e:
+        logging.error("Failed to parse system resources: required line not found")
+        return
 
     # Parse the uptime
     uptime = uptime_line.split("up")[1].split(",")[0].strip()
 
     # Parse the load averages
     load_averages = load_avg_line.split("load average:")[1].strip()
+    one_min_load = float(load_averages.split(",")[0].strip())
 
     # Parse the CPU idle and calculate usage
-    cpu_idle = float(cpu_line.split(",")[3].split()[0])
-    cpu_usage = 100 - cpu_idle
+    try:
+        cpu_idle = float(cpu_line.split(",")[3].split()[0])
+        cpu_usage = 100 - cpu_idle
+    except (ValueError, IndexError) as e:
+        logging.error(f"Failed to parse CPU usage: {e}")
+        return
 
     # Parse the memory usage
-    mem_parts = mem_line.split(",")
-    mem_total = float(mem_parts[0].split()[2])
-    mem_used = float(mem_parts[1].split()[0])
-    mem_free = mem_total - mem_used
+    try:
+        mem_parts = mem_line.split(",")
+        mem_used = float(mem_parts[1].split()[0])
+        mem_free = float(mem_parts[2].split()[0])
+    except (ValueError, IndexError) as e:
+        logging.error(f"Failed to parse memory usage: {e}")
+        return
 
-    # Commented out print statements
-    # logging.debug(f"Uptime: {uptime}")
-    # logging.debug(f"Load Averages: {load_averages}")
-    # logging.debug(f"CPU Usage: {cpu_usage:.2f}%")
-    # logging.debug(f"Memory Total: {mem_total:.2f} MiB, Used: {mem_used:.2f} MiB, Free: {mem_free:.2f} MiB")
-
-    # Insert data into MySQL database
-    db_host, db_user, db_password, db_name = get_db_credentials()
-    connection = mysql.connector.connect(
-        host=db_host,
-        user=db_user,
-        password=db_password,
-        database=db_name
-    )
-    cursor = connection.cursor()
-
+    # Prepare data for insertion
+    data = (hostname, uptime, one_min_load, cpu_usage, mem_used, mem_free, store_number)
     insert_query = """
-    INSERT INTO system_resources (timestamp, hostname, uptime, load_averages, cpu_usage, mem_total, mem_used, mem_free)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO system_resources (hostname, last_boot, one_min_load, cpu_usage, mem_used, mem_free, retail_store)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
     """
-    data = (time.strftime('%Y-%m-%d %H:%M:%S'), hostname, uptime, load_averages, cpu_usage, mem_total, mem_used, mem_free)
-    cursor.execute(insert_query, data)
-    connection.commit()
 
-    cursor.close()
-    connection.close()
-
-    logging.debug(f"Inserted system resources data for {hostname} into the database")
+    if live_db:
+        # Insert data into MySQL database
+        db_host, db_user, db_password, db_name = get_db_credentials()
+        connection = mysql.connector.connect(
+            host=db_host,
+            user=db_user,
+            password=db_password,
+            database=db_name
+        )
+        cursor = connection.cursor()
+        cursor.execute(insert_query, data)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        logging.debug(f"Inserted system resources data for {hostname} into the database")
+    else:
+        # Print the SQL query for debugging
+        logging.debug(f"SQL Query: {insert_query % data}")
 
 def main():
     parser = argparse.ArgumentParser(description='Gather metrics for a specified firewall.')
     parser.add_argument('store_number', type=int, help='The 4-digit store number of the firewall')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug mode')
+    parser.add_argument('--live-db', action='store_true', help='Insert data into the live database')
     args = parser.parse_args()
 
     setup_logging(args.debug)
-    query_firewall_data(args.store_number)
+    query_firewall_data(args.store_number, args.live_db)
 
 if __name__ == "__main__":
     main()
