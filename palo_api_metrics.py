@@ -92,7 +92,7 @@ def get_api_key(hostname, username, password):
 
 def query_firewall_data(store_number, live_db):
     # Update the base directory to include the .cred directory
-    base_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.cred')
+    base_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '../.cred')
     pankey_path = os.path.join(base_dir, 'pankey')
     pacreds_path = os.path.join(base_dir, 'pacreds')
 
