@@ -164,9 +164,11 @@ def main():
     parser.add_argument('store_number', type=int, help='The 4-digit store number of the firewall')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug mode')
     parser.add_argument('--live-db', action='store_true', help='Insert data into the live database')
+    parser.add_argument('--invocation', choices=['cli', 'streamlit'], default='cli', help='Specify the invocation method')
     args = parser.parse_args()
 
     setup_logging(args.debug)
+    logging.debug(f"Invocation method: {args.invocation}")
     query_firewall_data(args.store_number, args.live_db)
 
 if __name__ == "__main__":
