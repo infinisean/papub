@@ -5,6 +5,20 @@ from palo_api_metrics import query_firewall_data, get_pan_connected_devices
 from icmplib import ping
 import pandas as pd
 
+@st.cache_data
+def load_devices():
+    # Retrieve devices from Panorama
+    panorama_instances = ['a46panorama', 'l17panorama']  # Replace with actual Panorama hostnames
+    all_devices = []
+    for panorama in panorama_instances:
+        devices = get_pan_connected_devices(panorama)
+        all_devices.extend(devices)
+
+    # Sort and remove duplicates based on hostname
+    unique_devices = {device['hostname']: device for device in all_devices}.values()
+    sorted_devices = sorted(unique_devices, key=lambda x: x['hostname'])
+    return sorted_devices
+
 def ping_host(host, count=10, interval=0.1):
     output = []
     try:
@@ -25,27 +39,11 @@ def ping_host(host, count=10, interval=0.1):
 
     return "\n".join(output)
 
-def read_file(file_path):
-    with open(file_path, 'r') as file:
-        return file.read().strip()
-
-def show_devices():
+def show_devices(devices):
     st.title("Connected Devices")
 
-    # Retrieve devices from Panorama
-    panorama_instances = ['a46panorama', 'l17panorama']  # Replace with actual Panorama hostnames
-    all_devices = []
-    for panorama in panorama_instances:
-        devices = get_pan_connected_devices(panorama)
-        all_devices.extend(devices)
-
-    # Check if any devices were retrieved
-    if not all_devices:
-        st.error("No devices found.")
-        return
-
     # Convert to DataFrame for display
-    df = pd.DataFrame(all_devices)
+    df = pd.DataFrame(devices)
 
     # Check if the 'model' column exists
     if 'model' not in df.columns:
@@ -64,7 +62,6 @@ def show_devices():
     with col4:
         ip_search = st.text_input("Search IP")
 
-
     # Filter the DataFrame based on search inputs
     if hostname_search:
         df = df[df['hostname'].str.contains(hostname_search, case=False, na=False)]
@@ -82,6 +79,9 @@ def main():
     st.set_page_config(layout="wide")
     st.title("Palo Alto Network Monitoring Tool")
 
+    # Load and cache devices data
+    devices = load_devices()
+
     # Sidebar navigation
     st.sidebar.title("Navigation")
     nav_choice = st.sidebar.radio("Choose a tool:", ["Select", "Panorama Tools", "Palo FW Tools"], index=0)
@@ -89,40 +89,51 @@ def main():
     if nav_choice == "Panorama Tools":
         st.sidebar.subheader("Panorama Tools")
         if st.sidebar.button("Show Devices"):
-            show_devices()
+            show_devices(devices)
 
     elif nav_choice == "Palo FW Tools":
         st.sidebar.subheader("Palo FW Tools")
-        store_number = st.sidebar.text_input("Enter Store Number (1-3000):", "")
-        
-        if store_number.isdigit() and 1 <= int(store_number) <= 3000:
-            hostname = f"S{int(store_number):04d}MLANF01"
-            st.sidebar.success(f"Hostname: {hostname}")
 
-            # Ping the firewall and display the results
-            ping_results = ping_host(hostname)
-            st.sidebar.text_area("Ping Results", ping_results, height=200)
+        # Create a list of all possible search terms
+        search_terms = [device['hostname'] for device in devices] + \
+                       [device['serial'] for device in devices] + \
+                       [device['mgmt_ip'] for device in devices]
 
-            # Call the data gathering function
-            try:
-                query_firewall_data(store_number)
-            except Exception as e:
-                st.error(f"Error gathering data: {str(e)}")
-                return
+        # Autocomplete text input for selecting a device
+        selected_device = st.sidebar.text_input("Search and select a device:", "")
+        matching_devices = [term for term in search_terms if selected_device.lower() in term.lower()]
 
-            # Expanders for different outputs
-            with st.expander("Firewall Health"):
-                st.write("Loading firewall health data...")
-                # Implement logic to read and display data from the files
-                time.sleep(30)
+        if matching_devices:
+            selected_device = st.sidebar.selectbox("Matching Devices", matching_devices)
 
-            with st.expander("ARP Table"):
-                st.write("Loading ARP table data...")
-                # Implement logic to read and display ARP table data
-                time.sleep(30)
+        if selected_device:
+            # Find the selected device details
+            device_info = next((device for device in devices if selected_device in device.values()), None)
+            if device_info:
+                hostname = device_info['hostname']
+                st.sidebar.success(f"Selected Hostname: {hostname}")
 
-        else:
-            st.sidebar.error("Please enter a valid store number between 1 and 3000.")
+                # Ping the firewall and display the results
+                ping_results = ping_host(hostname)
+                st.sidebar.text_area("Ping Results", ping_results, height=200)
+
+                # Call the data gathering function
+                try:
+                    query_firewall_data(hostname)
+                except Exception as e:
+                    st.error(f"Error gathering data: {str(e)}")
+                    return
+
+                # Expanders for different outputs
+                with st.expander("Firewall Health"):
+                    st.write("Loading firewall health data...")
+                    # Implement logic to read and display data from the files
+                    time.sleep(30)
+
+                with st.expander("ARP Table"):
+                    st.write("Loading ARP table data...")
+                    # Implement logic to read and display ARP table data
+                    time.sleep(30)
 
 if __name__ == "__main__":
     main()
