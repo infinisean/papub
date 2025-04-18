@@ -117,9 +117,9 @@ def main():
                 ping_results = ping_host(hostname)
                 st.sidebar.text_area("Ping Results", ping_results, height=200)
 
-                # Call the data gathering function
+                # Call the data gathering function with live_db set to False
                 try:
-                    query_firewall_data(hostname)
+                    query_firewall_data(hostname, live_db=False)
                 except Exception as e:
                     st.error(f"Error gathering data: {str(e)}")
                     return
