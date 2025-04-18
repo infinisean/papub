@@ -5,6 +5,7 @@ import mysql.connector
 import argparse
 import logging
 from xml.etree import ElementTree as ET
+from xml.dom import minidom
 
 def get_pan_connected_devices(panorama):
     # Define the API command to retrieve connected devices
@@ -27,11 +28,15 @@ def get_pan_connected_devices(panorama):
     logging.debug(f"Sending request to Panorama: {url}")
     response = requests.get(url, headers=headers, verify=False)
 
-    # Write the raw response data to a temporary file for debugging
+    # Pretty print the raw response data and write to a temporary file for debugging
     tmp_file_path = f"/tmp/{panorama}_devices_response.xml"
-    with open(tmp_file_path, 'w') as tmp_file:
-        tmp_file.write(response.text)
-    logging.debug(f"Raw response data written to {tmp_file_path}")
+    try:
+        xml_pretty_str = minidom.parseString(response.text).toprettyxml(indent="  ")
+        with open(tmp_file_path, 'w') as tmp_file:
+            tmp_file.write(xml_pretty_str)
+        logging.debug(f"Pretty XML response data written to {tmp_file_path}")
+    except Exception as e:
+        logging.error(f"Failed to pretty print XML: {e}")
 
     devices_data = []
     if response.status_code == 200:
@@ -42,12 +47,15 @@ def get_pan_connected_devices(panorama):
             model = device.find('model').text if device.find('model') is not None else 'N/A'
             serial = device.find('serial').text if device.find('serial') is not None else 'N/A'
             mgmt_ip = device.find('ip-address').text if device.find('ip-address') is not None else 'N/A'
-            devices_data.append({
-                'hostname': hostname,
-                'model': model,
-                'serial': serial,
-                'mgmt_ip': mgmt_ip
-            })
+            
+            # Only add devices where not all fields are "N/A"
+            if not (hostname == model == serial == mgmt_ip == 'N/A'):
+                devices_data.append({
+                    'hostname': hostname,
+                    'model': model,
+                    'serial': serial,
+                    'mgmt_ip': mgmt_ip
+                })
     else:
         logging.error(f"Failed to retrieve connected devices from {panorama}. Status code: {response.status_code}")
 
