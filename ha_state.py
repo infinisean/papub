@@ -82,16 +82,13 @@ def display_ha_state():
         # Add a column for labels
         df.insert(0, 'Label', df.index)
 
-        # Create columns in Streamlit
-        col1, col2, col3 = st.columns(3)
+        # Configure columns using st.column_config
+        column_config = {
+            "Label": st.column_config.TextColumn("Labels", width=200),
+            panorama_instances[0]: st.column_config.TextColumn("Host A", width=200),
+            panorama_instances[1]: st.column_config.TextColumn("Host B", width=200)
+        }
 
-        # Display the labels, Host A, and Host B data in separate columns
-        col1.write("Labels")
-        col1.write(df['Label'])
-
-        col2.write("Host A")
-        col2.write(df[panorama_instances[0]])
-
-        col3.write("Host B")
-        col3.write(df[panorama_instances[1]])
+        # Display the DataFrame using Streamlit with column configuration
+        st.dataframe(df.reset_index(drop=True), column_config=column_config)
         
