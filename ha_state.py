@@ -131,7 +131,8 @@ def display_ha_state():
 
         # Display the key differing DataFrame using Streamlit with column configuration and custom height
         st.subheader("Key HA State Variables")
-        st.dataframe(styled_key_differing_df, column_config=column_config, height=key_differing_height)
+        #st.dataframe(styled_key_differing_df.reset_index(drop=True), column_config=column_config, height=key_differing_height)
+        st.dataframe(styled_key_differing_df)
 
         # Display the additional differing DataFrame in a collapsible section
         with st.expander("Additional HA State Variables"):
