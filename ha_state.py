@@ -77,15 +77,25 @@ def display_ha_state():
         # Fill NaN with empty strings
         df = df.fillna('')
 
-        # Add a column for labels
-        df.insert(0, 'Label', df.index)
+        # Add a column for labels and perform string replacements
+        df.index = df.index.str.replace('peer-info/', '', regex=False)
+        df.index = df.index.str.replace('local-info/', '', regex=False)
+        df.index = df.index.str.replace('/enabled', '', regex=False)
+        df.insert(0, 'HA_State_Vars', df.index)
+
+        # Determine which columns should be CheckboxColumns
+        checkbox_columns = df.columns[df.apply(lambda col: col.isin(['yes', 'no']).all())]
 
         # Configure columns using st.column_config
         column_config = {
-            "Label": st.column_config.TextColumn("Labels", width=200),
-            panorama_instances[0]: st.column_config.TextColumn("Host A", width=200),
-            panorama_instances[1]: st.column_config.TextColumn("Host B", width=200)
+            "HA_State_Vars": st.column_config.TextColumn("HA_State_Vars", width=200),
+            panorama_instances[0]: st.column_config.TextColumn(panorama_instances[0], width=200),
+            panorama_instances[1]: st.column_config.TextColumn(panorama_instances[1], width=200)
         }
+
+        # Update column configuration for checkbox columns
+        for col in checkbox_columns:
+            column_config[col] = st.column_config.CheckboxColumn(col, readonly=True)
 
         # Display the DataFrame using Streamlit with column configuration
         st.dataframe(df.reset_index(drop=True), column_config=column_config)
