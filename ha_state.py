@@ -65,10 +65,8 @@ def display_ha_state():
     ha_states = get_pan_ha_state(panorama_instances)
 
     if ha_states:
-        # Create a DataFrame with labels as the index
-        all_labels = set()
-        for data in ha_states.values():
-            all_labels.update(data.keys())
+        # Create a list of all unique labels
+        all_labels = list(set().union(*[data.keys() for data in ha_states.values()]))
 
         # Create a DataFrame with labels as rows and hosts as columns
         df = pd.DataFrame(index=all_labels)
