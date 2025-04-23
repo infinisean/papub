@@ -194,7 +194,7 @@ def parse_system_resources(response_text, hostname, live_db):
     # Prepare data for insertion
     data = (hostname, uptime, one_min_load, cpu_usage, mem_used, mem_free)
     insert_query = """
-    INSERT INTO system_resources (hostname, last_boot, one_min_load, cpu_usage, mem_used, mem_free)
+    INSERT INTO system_resources (hostname, updated, bu, retail_store_id, last_boot, one_min_load, cpu_usage, mem_used, mem_free)
     VALUES (%s, %s, %s, %s, %s, %s)
     """
 
@@ -240,3 +240,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

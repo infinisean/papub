@@ -38,6 +38,7 @@ def ping_host(host, count=10, interval=0.1):
 
     return "\n".join(output)
 
+
 def show_devices(devices):
     st.title("Connected Devices")
 
