@@ -26,7 +26,7 @@ def parse_element_to_dict(element, parent_tag=""):
 def get_pan_ha_state(panorama_instances):
     ha_states = {}
     for panorama in panorama_instances:
-        command = "&lt;show&gt;&lt;high-availability&gt;&lt;state&gt;&lt;/state&gt;&lt;/high-availability&gt;&lt;/show&gt;" #DO NOT CHANGE THIS LINE AT ALL
+        command = "<show><high-availability><state></state></high-availability></show>" #DO NOT CHANGE THIS LINE AT ALL
 
         base_dir = '/home/netmonitor/.cred'
         pankey_path = os.path.join(base_dir, 'pankey')
@@ -39,7 +39,7 @@ def get_pan_ha_state(panorama_instances):
             return
 
         headers = {'X-PAN-KEY': panorama_api_key}
-        url = f"https://{panorama}/api/?type=op&amp;cmd={command}" #DO NOT CHANGE THIS LINE AT ALL
+        url = f"https://{panorama}/api/?type=op&cmd={command}" #DO NOT CHANGE THIS LINE AT ALL
         response = requests.get(url, headers=headers, verify=False)
 
         if response.status_code == 200:
@@ -108,13 +108,6 @@ def display_ha_state():
         # Calculate the height to display all rows without scrolling
         row_height = 35  # Approximate height per row in pixels
         key_differing_height = row_height * len(key_differing_df)
-
-        # Configure columns using st.column_config
-        column_config = {
-            "HA_State_Vars": st.column_config.TextColumn("HA_State_Vars", width=200),
-            panorama_instances[0]: st.column_config.TextColumn(panorama_instances[0], width=200),
-            panorama_instances[1]: st.column_config.TextColumn(panorama_instances[1], width=200)
-        }
 
         # Display the key differing DataFrame using Streamlit with column configuration and custom height
         st.subheader("Key HA State Variables")
