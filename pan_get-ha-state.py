@@ -49,7 +49,7 @@ def execute_command(channel, command, debug):
         print("Command output received")
     return output
 
-def get_ha_state(hostname, username, ssh_key, output_dir, debug):
+def get_ha_state_ssh(hostname, username, ssh_key, output_dir, debug):
     try:
         if debug:
             print(f"Connecting to {hostname}")
@@ -86,7 +86,8 @@ def main():
 
     ssh_key = '/root/.ssh/id_rsa'  # Path to the private key
     username = 'pano-xml'
-    hostnames = ['a46panorama', 'l17panorama']
+    #hostnames = ['a46panorama', 'l17panorama']
+    hostnames = ['pano-dev-atl', 'pano-dev-lak']
     output_dir = '/tmp/palo'
 
     if not os.path.exists(output_dir):
@@ -94,7 +95,7 @@ def main():
 
     while True:
         for hostname in hostnames:
-            get_ha_state(hostname, username, ssh_key, output_dir, args.debug)
+            get_ha_state_ssh(hostname, username, ssh_key, output_dir, args.debug)
         time.sleep(60)
 
 if __name__ == "__main__":

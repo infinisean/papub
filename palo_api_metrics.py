@@ -10,7 +10,7 @@ from xml.dom import minidom
 def get_pan_connected_devices(panorama):
     # Define the API command to retrieve connected devices
     command = '<show><devices><connected></connected></devices></show>'
-
+ 
     # Use the absolute path for the credentials directory
     base_dir = '/home/netmonitor/.cred'
     pankey_path = os.path.join(base_dir, 'pankey')
