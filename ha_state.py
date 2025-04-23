@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import os
 from xml.etree import ElementTree as ET
-from prettytable import PrettyTable
+import pandas as pd
 import logging
 
 def read_file(file_path):
@@ -12,19 +12,21 @@ def read_file(file_path):
     logging.debug(f"Successfully read file: {file_path}")
     return content
 
-def parse_element(element, table, parent_tag=""):
-    """Recursively parse XML elements and add them to the table."""
+def parse_element_to_dict(element, parent_tag=""):
+    """Recursively parse XML elements and return a dictionary."""
+    data = {}
     for child in element:
         tag = f"{parent_tag}/{child.tag}" if parent_tag else child.tag
         if len(child):  # If the element has children, recurse
-            parse_element(child, table, tag)
+            data.update(parse_element_to_dict(child, tag))
         else:
-            table.add_row([tag, child.text])
+            data[tag] = child.text
+    return data
 
 def get_pan_ha_state(panorama_instances):
     ha_states = {}
     for panorama in panorama_instances:
-        command = "<show><high-availability><state></state></high-availability></show>"
+        command = "<show><high-availability><state></state></high-availability></show>" #DO NOT CHANGE THIS LINE AT ALL
 
         base_dir = '/home/netmonitor/.cred'
         pankey_path = os.path.join(base_dir, 'pankey')
@@ -37,7 +39,7 @@ def get_pan_ha_state(panorama_instances):
             return
 
         headers = {'X-PAN-KEY': panorama_api_key}
-        url = f"https://{panorama}/api/?type=op&cmd={command}"
+        url = f"https://{panorama}/api/?type=op&cmd={command}" #DO NOT CHANGE THIS LINE AT ALL
         response = requests.get(url, headers=headers, verify=False)
 
         if response.status_code == 200:
@@ -50,10 +52,7 @@ def get_pan_ha_state(panorama_instances):
             xml_response = ET.fromstring(response.text)
             ha_state = xml_response.find('.//result')
             if ha_state is not None:
-                table = PrettyTable()
-                table.field_names = ["Element", "Value"]
-                parse_element(ha_state, table)
-                ha_states[panorama] = table
+                ha_states[panorama] = parse_element_to_dict(ha_state)
             else:
                 st.error(f"Failed to parse HA state from {panorama}.")
         else:
@@ -66,11 +65,8 @@ def display_ha_state():
     ha_states = get_pan_ha_state(panorama_instances)
 
     if ha_states:
-        col1, col2 = st.columns(2)
-        for i, (panorama, table) in enumerate(ha_states.items()):
-            if i % 2 == 0:
-                col1.text(f"HA State for {panorama}")
-                col1.text(table)
-            else:
-                col2.text(f"HA State for {panorama}")
-                col2.text(table)
+        # Convert the dictionary to a DataFrame for better display
+        df = pd.DataFrame(ha_states).T.fillna('')  # Transpose and fill NaN with empty strings
+
+        # Display the DataFrame using Streamlit
+        st.table(df)
