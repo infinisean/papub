@@ -27,7 +27,8 @@ def wait_for_prompt(channel, hostname, debug):
                 buffer += received_data
                 raw_file.write(received_data)
                 raw_file.flush()  # Ensure data is written immediately
-                if re.search(rf'{hostname} \(primary|secondary-active|standby\)', buffer, re.IGNORECASE):
+                # Adjust the regex to match the prompt format
+                if re.search(rf'{re.escape(hostname)}\(.*?\)>', buffer, re.IGNORECASE):
                     if debug:
                         print(f"Prompt detected for {hostname}")
                     break
