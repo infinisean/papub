@@ -99,8 +99,8 @@ def display_ha_state():
         }
 
         # Update column configuration for checkbox columns
-        for col in checkbox_columns:
-            column_config[col] = st.column_config.CheckboxColumn(col, readonly=True)
+        #for col in checkbox_columns:
+        #    column_config[col] = st.column_config.CheckboxColumn(col, readonly=True)
 
         # Separate the DataFrame into differing and identical rows
         differing_df = df[df[panorama_instances[0]] != df[panorama_instances[1]]]
