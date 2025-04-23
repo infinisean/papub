@@ -77,6 +77,7 @@ def display_ha_state():
         df = df.fillna('')
 
         # Add a column for labels and perform string replacements
+        #df.index = df.index.str.replace('peer-info/', '', regex=False)
         df.index = df.index.str.replace('local-info/', '', regex=False)
         df.index = df.index.str.replace('/enabled', '', regex=False)
         df.insert(0, 'HA_State_Vars', df.index)
@@ -87,46 +88,34 @@ def display_ha_state():
         sorted_index = non_peer_index + peer_index
         df = df.loc[sorted_index]
 
-        # Define key variables and reorder them
-        key_vars = ['state', 'mgmt-ip', 'mgmt-macaddr', 'priority']
-        key_differing_df = df.loc[df.index.intersection(key_vars)]
+        # Determine which columns should be CheckboxColumns
+        #checkbox_columns = df.columns[df.apply(lambda col: col.isin(['yes', 'no']).all())]
 
-        # Highlight the "state" variable
-        def highlight_state(val):
-            if 'active' in val:
-                return 'background-color: lightgreen'
-            elif 'passive' in val:
-                return 'background-color: lightyellow'
-            return ''
+        # Configure columns using st.column_config
+        column_config = {
+            "HA_State_Vars": st.column_config.TextColumn("HA_State_Vars", width=200),
+            panorama_instances[0]: st.column_config.TextColumn(panorama_instances[0], width=200),
+            panorama_instances[1]: st.column_config.TextColumn(panorama_instances[1], width=200)
+        }
 
-        # Reset index before styling
-        key_differing_df_reset = key_differing_df.reset_index(drop=True)
+        # Update column configuration for checkbox columns
+        #or col in checkbox_columns:
+            #column_config[col] = st.column_config.CheckboxColumn(col, readonly=True)
 
-        # Apply highlighting to the key differing DataFrame
-        styled_key_differing_df = key_differing_df_reset.style.applymap(highlight_state, subset=['state'])
+        # Separate the DataFrame into differing and identical rows
+        differing_df = df[df[panorama_instances[0]] != df[panorama_instances[1]]]
+        identical_df = df[df[panorama_instances[0]] == df[panorama_instances[1]]]
 
         # Calculate the height to display all rows without scrolling
         row_height = 35  # Approximate height per row in pixels
-        key_differing_height = row_height * len(key_differing_df)
+        differing_height = row_height * len(differing_df)
+        identical_height = row_height * len(identical_df)
 
-        # Display the key differing DataFrame using Streamlit with column configuration and custom height
-        st.subheader("Key HA State Variables")
-        st.dataframe(styled_key_differing_df, column_config=column_config, height=key_differing_height)
-
-        # Separate the remaining differing DataFrame into additional variables
-        additional_differing_df = df.drop(index=key_vars)
-
-        # Reset index for additional differing DataFrame
-        additional_differing_df_reset = additional_differing_df.reset_index(drop=True)
-
-        # Display the additional differing DataFrame in a collapsible section
-        with st.expander("Additional HA State Variables"):
-            st.dataframe(additional_differing_df_reset, column_config=column_config, height=row_height * len(additional_differing_df))
-
-        # Reset index for identical DataFrame
-        identical_df_reset = identical_df.reset_index(drop=True)
+        # Display the differing DataFrame using Streamlit with column configuration and custom height
+        st.subheader("Differing HA State Variables")
+        st.dataframe(differing_df.reset_index(drop=True), column_config=column_config, height=differing_height)
 
         # Display the identical DataFrame in a collapsible section
         with st.expander("Identical HA State Variables"):
-            st.dataframe(identical_df_reset, column_config=column_config, height=identical_height)
+            st.dataframe(identical_df.reset_index(drop=True), column_config=column_config, height=identical_height)
         
