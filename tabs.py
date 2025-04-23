@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit.web import cli as stcli
 
 tab1, tab2, tab3 = st.tabs(["Tab 1", "Tab 2", "Tab 3"])
 
