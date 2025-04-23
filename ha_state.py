@@ -10,6 +10,13 @@ import argparse
 import logging
 from xml.dom import minidom
 
+
+def read_file(file_path):
+    logging.debug(f"Attempting to read file: {file_path}")
+    with open(file_path, 'r') as file:
+        content = file.read().strip()
+    logging.debug(f"Successfully read file: {file_path}")
+    return content
 def get_pan_ha_state(panorama_instances):
     ha_states = {}
     for panorama in panorama_instances:
