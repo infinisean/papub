@@ -1,15 +1,9 @@
 import streamlit as st
 import requests
-import re
 import os
 from xml.etree import ElementTree as ET
 from prettytable import PrettyTable
-import time
-import mysql.connector
-import argparse
 import logging
-from xml.dom import minidom
-
 
 def read_file(file_path):
     logging.debug(f"Attempting to read file: {file_path}")
@@ -17,6 +11,16 @@ def read_file(file_path):
         content = file.read().strip()
     logging.debug(f"Successfully read file: {file_path}")
     return content
+
+def parse_element(element, table, parent_tag=""):
+    """Recursively parse XML elements and add them to the table."""
+    for child in element:
+        tag = f"{parent_tag}/{child.tag}" if parent_tag else child.tag
+        if len(child):  # If the element has children, recurse
+            parse_element(child, table, tag)
+        else:
+            table.add_row([tag, child.text])
+
 def get_pan_ha_state(panorama_instances):
     ha_states = {}
     for panorama in panorama_instances:
@@ -41,8 +45,7 @@ def get_pan_ha_state(panorama_instances):
             if ha_state is not None:
                 table = PrettyTable()
                 table.field_names = ["Element", "Value"]
-                for elem in ha_state:
-                    table.add_row([elem.tag, elem.text])
+                parse_element(ha_state, table)
                 ha_states[panorama] = table
             else:
                 st.error(f"Failed to parse HA state from {panorama}.")
