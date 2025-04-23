@@ -75,3 +75,4 @@ def display_ha_state():
         st.dataframe(df_transposed.style.set_properties(**{'text-align': 'left'}).set_table_styles(
             [{'selector': 'th', 'props': [('text-align', 'left')]}]
         ))
+        
