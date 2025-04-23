@@ -68,5 +68,7 @@ def display_ha_state():
         # Convert the dictionary to a DataFrame for better display
         df = pd.DataFrame(ha_states).T.fillna('')  # Transpose and fill NaN with empty strings
 
-        # Display the DataFrame using Streamlit
-        st.table(df)
+        # Display the DataFrame using Streamlit with better formatting
+        st.dataframe(df.style.set_properties(**{'text-align': 'left'}).set_table_styles(
+            [{'selector': 'th', 'props': [('text-align', 'left')]}]
+        ))
