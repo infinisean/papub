@@ -3,6 +3,7 @@ import time
 import re
 import os
 import argparse
+from prettytable import PrettyTable
 
 def read_ssh_key():
     with open('/root/.ssh/id_rsa.pub', 'r') as file:
@@ -17,17 +18,23 @@ def create_ssh_client(hostname, username, ssh_key):
 def wait_for_prompt(channel, hostname, debug):
     buffer = ''
     counter = 0
-    while True:
-        if channel.recv_ready():
-            buffer += channel.recv(1024).decode('utf-8')
-            if re.search(rf'{hostname} \(primary|secondary-active|standby\)', buffer, re.IGNORECASE):
-                if debug:
-                    print(f"Prompt detected for {hostname}")
-                break
-        if debug:
-            print(f"Waiting for prompt... {counter} seconds")
-        counter += 1
-        time.sleep(1)
+    raw_output_file = f"/tmp/palo/{hostname}_RAW_SSH_OUT.txt"
+    
+    with open(raw_output_file, 'w') as raw_file:
+        while True:
+            if channel.recv_ready():
+                received_data = channel.recv(1024).decode('utf-8')
+                buffer += received_data
+                raw_file.write(received_data)
+                raw_file.flush()  # Ensure data is written immediately
+                if re.search(rf'{hostname} \(primary|secondary-active|standby\)', buffer, re.IGNORECASE):
+                    if debug:
+                        print(f"Prompt detected for {hostname}")
+                    break
+            if debug:
+                print(f"Waiting for prompt... {counter} seconds")
+            counter += 1
+            time.sleep(1)
 
 def execute_command(channel, command, debug):
     if debug:
@@ -41,6 +48,36 @@ def execute_command(channel, command, debug):
         print("Command output received")
     return output
 
+def get_ha_state(hostname, username, ssh_key, output_dir, debug):
+    try:
+        if debug:
+            print(f"Connecting to {hostname}")
+        client = create_ssh_client(hostname, username, ssh_key)
+        channel = client.invoke_shell()
+
+        wait_for_prompt(channel, hostname, debug)
+        output = execute_command(channel, 'show high-availability state', debug)
+
+        output_file = os.path.join(output_dir, f'{hostname}_ha-state.txt')
+        with open(output_file, 'w') as file:
+            file.write(output)
+
+        if debug:
+            print(f"Output written to {output_file}")
+
+        # Parse and print the HA state in a table format
+        table = PrettyTable()
+        table.field_names = ["Element", "Value"]
+        for line in output.splitlines():
+            if ':' in line:
+                element, value = line.split(':', 1)
+                table.add_row([element.strip(), value.strip()])
+        print(table)
+
+        client.close()
+    except Exception as e:
+        print(f"Error connecting to {hostname}: {e}")
+
 def main():
     parser = argparse.ArgumentParser(description='Retrieve HA state from Panorama devices.')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug mode')
@@ -49,7 +86,6 @@ def main():
     ssh_key = '/root/.ssh/id_rsa'  # Path to the private key
     username = 'pano-xml'
     hostnames = ['a46panorama', 'l17panorama']
-    command = 'show high-availability state'
     output_dir = '/tmp/palo'
 
     if not os.path.exists(output_dir):
@@ -57,26 +93,7 @@ def main():
 
     while True:
         for hostname in hostnames:
-            try:
-                if args.debug:
-                    print(f"Connecting to {hostname}")
-                client = create_ssh_client(hostname, username, ssh_key)
-                channel = client.invoke_shell()
-
-                wait_for_prompt(channel, hostname, args.debug)
-                output = execute_command(channel, command, args.debug)
-
-                output_file = os.path.join(output_dir, f'{hostname}_ha-state.txt')
-                with open(output_file, 'w') as file:
-                    file.write(output)
-
-                if args.debug:
-                    print(f"Output written to {output_file}")
-
-                client.close()
-            except Exception as e:
-                print(f"Error connecting to {hostname}: {e}")
-
+            get_ha_state(hostname, username, ssh_key, output_dir, args.debug)
         time.sleep(60)
 
 if __name__ == "__main__":
