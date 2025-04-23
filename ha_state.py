@@ -25,6 +25,7 @@ def get_pan_ha_state(panorama_instances):
     ha_states = {}
     for panorama in panorama_instances:
         command = "<show><high-availability><state></state></high-availability></show>"
+
         base_dir = '/home/netmonitor/.cred'
         pankey_path = os.path.join(base_dir, 'pankey')
 
@@ -40,6 +41,12 @@ def get_pan_ha_state(panorama_instances):
         response = requests.get(url, headers=headers, verify=False)
 
         if response.status_code == 200:
+            # Save raw XML response to a file
+            raw_data_path = f"/tmp/palo/{panorama}_ha-state.txt"
+            os.makedirs(os.path.dirname(raw_data_path), exist_ok=True)
+            with open(raw_data_path, 'w') as file:
+                file.write(response.text)
+
             xml_response = ET.fromstring(response.text)
             ha_state = xml_response.find('.//result')
             if ha_state is not None:
