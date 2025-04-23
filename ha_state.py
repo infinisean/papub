@@ -77,7 +77,6 @@ def display_ha_state():
         df = df.fillna('')
 
         # Add a column for labels and perform string replacements
-        #df.index = df.index.str.replace('peer-info/', '', regex=False)
         df.index = df.index.str.replace('local-info/', '', regex=False)
         df.index = df.index.str.replace('/enabled', '', regex=False)
         df.insert(0, 'HA_State_Vars', df.index)
@@ -106,14 +105,37 @@ def display_ha_state():
         differing_df = df[df[panorama_instances[0]] != df[panorama_instances[1]]]
         identical_df = df[df[panorama_instances[0]] == df[panorama_instances[1]]]
 
+        # Define key variables
+        key_vars = ['state', 'mgmt-ip', 'mgmt-macaddr', 'priority']
+
+        # Split differing DataFrame into key and additional variables
+        key_differing_df = differing_df[differing_df.index.isin(key_vars)]
+        additional_differing_df = differing_df[~differing_df.index.isin(key_vars)]
+
+        # Highlight the "state" variable
+        def highlight_state(val):
+            if 'active' in val:
+                return 'background-color: lightgreen'
+            elif 'passive' in val:
+                return 'background-color: lightyellow'
+            return ''
+
+        # Apply highlighting to the key differing DataFrame
+        styled_key_differing_df = key_differing_df.style.applymap(highlight_state, subset=['state'])
+
         # Calculate the height to display all rows without scrolling
         row_height = 35  # Approximate height per row in pixels
-        differing_height = row_height * len(differing_df)
+        key_differing_height = row_height * len(key_differing_df)
+        additional_differing_height = row_height * len(additional_differing_df)
         identical_height = row_height * len(identical_df)
 
-        # Display the differing DataFrame using Streamlit with column configuration and custom height
-        st.subheader("Differing HA State Variables")
-        st.dataframe(differing_df.reset_index(drop=True), column_config=column_config, height=differing_height)
+        # Display the key differing DataFrame using Streamlit with column configuration and custom height
+        st.subheader("Key HA State Variables")
+        st.dataframe(styled_key_differing_df.reset_index(drop=True), column_config=column_config, height=key_differing_height)
+
+        # Display the additional differing DataFrame in a collapsible section
+        with st.expander("Additional HA State Variables"):
+            st.dataframe(additional_differing_df.reset_index(drop=True), column_config=column_config, height=additional_differing_height)
 
         # Display the identical DataFrame in a collapsible section
         with st.expander("Identical HA State Variables"):
