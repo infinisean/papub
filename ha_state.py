@@ -89,7 +89,7 @@ def display_ha_state():
         df = df.loc[sorted_index]
 
         # Determine which columns should be CheckboxColumns
-        yyycheckbox_columns = df.columns[df.apply(lambda col: col.isin(['yes', 'no']).all())]
+        #checkbox_columns = df.columns[df.apply(lambda col: col.isin(['yes', 'no']).all())]
 
         # Configure columns using st.column_config
         column_config = {
@@ -99,8 +99,8 @@ def display_ha_state():
         }
 
         # Update column configuration for checkbox columns
-        for col in checkbox_columns:
-            column_config[col] = st.column_config.CheckboxColumn(col, readonly=True)
+        #or col in checkbox_columns:
+            #column_config[col] = st.column_config.CheckboxColumn(col, readonly=True)
 
         # Separate the DataFrame into differing and identical rows
         differing_df = df[df[panorama_instances[0]] != df[panorama_instances[1]]]
