@@ -82,6 +82,12 @@ def display_ha_state():
         df.index = df.index.str.replace('/enabled', '', regex=False)
         df.insert(0, 'HA_State_Vars', df.index)
 
+        # Sort the index: non-peer first, then peer, both alphabetically
+        non_peer_index = sorted([idx for idx in df.index if "peer" not in idx])
+        peer_index = sorted([idx for idx in df.index if "peer" in idx])
+        sorted_index = non_peer_index + peer_index
+        df = df.loc[sorted_index]
+
         # Determine which columns should be CheckboxColumns
         checkbox_columns = df.columns[df.apply(lambda col: col.isin(['yes', 'no']).all())]
 
