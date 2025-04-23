@@ -89,16 +89,14 @@ def display_ha_state():
 
         # Define key variables and reorder them
         key_vars = ['state', 'mgmt-ip', 'mgmt-macaddr', 'priority']
-        key_differing_df = df.loc[df.index.intersection(key_vars)]
-
-        # Reorder the key variables
-        key_differing_df = key_differing_df.reindex(key_vars)
+        existing_keys = [key for key in key_vars if key in df.index]
+        key_differing_df = df.loc[existing_keys]
 
         # Highlight the "state" variable
         def highlight_state(val):
-            if 'active' in val:
+            if val and 'active' in val:
                 return 'background-color: lightgreen'
-            elif 'passive' in val:
+            elif val and 'passive' in val:
                 return 'background-color: lightyellow'
             return ''
 
@@ -124,7 +122,7 @@ def display_ha_state():
         st.dataframe(styled_key_differing_df, column_config=column_config, height=key_differing_height)
 
         # Separate the remaining differing DataFrame into additional variables
-        additional_differing_df = df.drop(index=key_vars)
+        additional_differing_df = df.drop(index=existing_keys)
 
         # Reset index for additional differing DataFrame
         additional_differing_df_reset = additional_differing_df.reset_index(drop=True)
@@ -133,10 +131,11 @@ def display_ha_state():
         with st.expander("Additional HA State Variables"):
             st.dataframe(additional_differing_df_reset, column_config=column_config, height=row_height * len(additional_differing_df))
 
-        # Reset index for identical DataFrame
+        # Separate and reset index for identical DataFrame
+        identical_df = df.drop(index=existing_keys)
         identical_df_reset = identical_df.reset_index(drop=True)
 
         # Display the identical DataFrame in a collapsible section
         with st.expander("Identical HA State Variables"):
-            st.dataframe(identical_df_reset, column_config=column_config, height=identical_height)
+            st.dataframe(identical_df_reset, column_config=column_config, height=row_height * len(identical_df))
         
