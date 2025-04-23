@@ -97,6 +97,10 @@ def display_ha_state():
         for col in checkbox_columns:
             column_config[col] = st.column_config.CheckboxColumn(col, readonly=True)
 
-        # Display the DataFrame using Streamlit with column configuration
-        st.dataframe(df.reset_index(drop=True), column_config=column_config)
+        # Calculate the height to display all rows without scrolling
+        row_height = 35  # Approximate height per row in pixels
+        total_height = row_height * len(df)
+
+        # Display the DataFrame using Streamlit with column configuration and custom height
+        st.dataframe(df.reset_index(drop=True), column_config=column_config, height=total_height)
         
