@@ -77,6 +77,7 @@ def display_ha_state():
         df = df.fillna('')
 
         # Add a column for labels and perform string replacements
+        #df.index = df.index.str.replace('peer-info/', '', regex=False)
         df.index = df.index.str.replace('local-info/', '', regex=False)
         df.index = df.index.str.replace('/enabled', '', regex=False)
         df.insert(0, 'HA_State_Vars', df.index)
@@ -101,23 +102,6 @@ def display_ha_state():
         for col in checkbox_columns:
             column_config[col] = st.column_config.CheckboxColumn(col, readonly=True)
 
-        # Determine primary and standby instances
-        primary_instance = None
-        standby_instance = None
-        for host, data in ha_states.items():
-            if data.get('state') == 'active':
-                primary_instance = host
-            elif data.get('state') == 'passive':
-                standby_instance = host
-
-        # Apply highlighting based on primary and standby
-        def highlight_row(row):
-            if row.name == primary_instance:
-                return ['background-color: green'] * len(row)
-            elif row.name == standby_instance:
-                return ['background-color: yellow'] * len(row)
-            return [''] * len(row)
-
         # Separate the DataFrame into differing and identical rows
         differing_df = df[df[panorama_instances[0]] != df[panorama_instances[1]]]
         identical_df = df[df[panorama_instances[0]] == df[panorama_instances[1]]]
@@ -129,9 +113,9 @@ def display_ha_state():
 
         # Display the differing DataFrame using Streamlit with column configuration and custom height
         st.subheader("Differing HA State Variables")
-        st.dataframe(differing_df.style.apply(highlight_row, axis=1), column_config=column_config, height=differing_height)
+        st.dataframe(differing_df.reset_index(drop=True), column_config=column_config, height=differing_height)
 
         # Display the identical DataFrame in a collapsible section
         with st.expander("Identical HA State Variables"):
-            st.dataframe(identical_df.style.apply(highlight_row, axis=1), column_config=column_config, height=identical_height)
+            st.dataframe(identical_df.reset_index(drop=True), column_config=column_config, height=identical_height)
         
