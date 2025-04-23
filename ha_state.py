@@ -77,7 +77,7 @@ def display_ha_state():
         df = df.fillna('')
 
         # Add a column for labels and perform string replacements
-        df.index = df.index.str.replace('peer-info/', '', regex=False)
+        #df.index = df.index.str.replace('peer-info/', '', regex=False)
         df.index = df.index.str.replace('local-info/', '', regex=False)
         df.index = df.index.str.replace('/enabled', '', regex=False)
         df.insert(0, 'HA_State_Vars', df.index)
