@@ -99,8 +99,11 @@ def display_ha_state():
                 return 'background-color: lightyellow'
             return ''
 
+        # Reset index before styling
+        key_differing_df_reset = key_differing_df.reset_index(drop=True)
+
         # Apply highlighting to the key differing DataFrame
-        styled_key_differing_df = key_differing_df.style.applymap(highlight_state, subset=['state'])
+        styled_key_differing_df = key_differing_df_reset.style.applymap(highlight_state, subset=['state'])
 
         # Calculate the height to display all rows without scrolling
         row_height = 35  # Approximate height per row in pixels
@@ -108,16 +111,22 @@ def display_ha_state():
 
         # Display the key differing DataFrame using Streamlit with column configuration and custom height
         st.subheader("Key HA State Variables")
-        st.dataframe(styled_key_differing_df.reset_index(drop=True), column_config=column_config, height=key_differing_height)
+        st.dataframe(styled_key_differing_df, column_config=column_config, height=key_differing_height)
 
         # Separate the remaining differing DataFrame into additional variables
         additional_differing_df = df.drop(index=key_vars)
 
+        # Reset index for additional differing DataFrame
+        additional_differing_df_reset = additional_differing_df.reset_index(drop=True)
+
         # Display the additional differing DataFrame in a collapsible section
         with st.expander("Additional HA State Variables"):
-            st.dataframe(additional_differing_df.reset_index(drop=True), column_config=column_config, height=row_height * len(additional_differing_df))
+            st.dataframe(additional_differing_df_reset, column_config=column_config, height=row_height * len(additional_differing_df))
+
+        # Reset index for identical DataFrame
+        identical_df_reset = identical_df.reset_index(drop=True)
 
         # Display the identical DataFrame in a collapsible section
         with st.expander("Identical HA State Variables"):
-            st.dataframe(identical_df.reset_index(drop=True), column_config=column_config, height=identical_height)
+            st.dataframe(identical_df_reset, column_config=column_config, height=identical_height)
         
