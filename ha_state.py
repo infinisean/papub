@@ -3,6 +3,11 @@ import requests
 import os
 from xml.etree import ElementTree as ET
 from prettytable import PrettyTable
+import time
+import mysql.connector
+import argparse
+import logging
+from xml.dom import minidom
 
 def get_pan_ha_state(panorama_instances):
     ha_states = {}
