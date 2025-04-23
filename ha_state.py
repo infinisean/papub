@@ -67,7 +67,6 @@ def display_ha_state():
     if ha_states:
         # Create a list of all unique labels
         all_labels = list(set().union(*[data.keys() for data in ha_states.values()]))
-
         # Create a DataFrame with labels as rows and hosts as columns
         df = pd.DataFrame(index=all_labels)
 
@@ -97,10 +96,20 @@ def display_ha_state():
         for col in checkbox_columns:
             column_config[col] = st.column_config.CheckboxColumn(col, readonly=True)
 
+        # Separate the DataFrame into differing and identical rows
+        differing_df = df[df[panorama_instances[0]] != df[panorama_instances[1]]]
+        identical_df = df[df[panorama_instances[0]] == df[panorama_instances[1]]]
+
         # Calculate the height to display all rows without scrolling
         row_height = 35  # Approximate height per row in pixels
-        total_height = row_height * len(df)
+        differing_height = row_height * len(differing_df)
+        identical_height = row_height * len(identical_df)
 
-        # Display the DataFrame using Streamlit with column configuration and custom height
-        st.dataframe(df.reset_index(drop=True), column_config=column_config, height=total_height)
+        # Display the differing DataFrame using Streamlit with column configuration and custom height
+        st.subheader("Differing HA State Variables")
+        st.dataframe(differing_df.reset_index(drop=True), column_config=column_config, height=differing_height)
+
+        # Display the identical DataFrame in a collapsible section
+        with st.expander("Identical HA State Variables"):
+            st.dataframe(identical_df.reset_index(drop=True), column_config=column_config, height=identical_height)
         
