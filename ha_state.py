@@ -65,14 +65,23 @@ def display_ha_state():
     ha_states = get_pan_ha_state(panorama_instances)
 
     if ha_states:
-        # Convert the dictionary to a DataFrame for better display
-        df = pd.DataFrame(ha_states).fillna('')  # Fill NaN with empty strings
+        # Create a DataFrame with labels as the index
+        all_labels = set()
+        for data in ha_states.values():
+            all_labels.update(data.keys())
 
-        # Transpose the DataFrame to have fields as rows and hosts as columns
-        df_transposed = df.T
+        # Create a DataFrame with labels as rows and hosts as columns
+        df = pd.DataFrame(index=all_labels)
 
-        # Display the transposed DataFrame using Streamlit
-        st.dataframe(df_transposed.style.set_properties(**{'text-align': 'left'}).set_table_styles(
-            [{'selector': 'th', 'props': [('text-align', 'left')]}]
-        ))
+        for host, data in ha_states.items():
+            df[host] = pd.Series(data)
+
+        # Fill NaN with empty strings
+        df = df.fillna('')
+
+        # Add a column for labels
+        df.insert(0, 'Label', df.index)
+
+        # Display the DataFrame using Streamlit
+        st.dataframe(df.reset_index(drop=True))
         
