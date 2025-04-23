@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import re
 import os
 from xml.etree import ElementTree as ET
 from prettytable import PrettyTable
