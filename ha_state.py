@@ -89,7 +89,7 @@ def display_ha_state():
         df = df.loc[sorted_index]
 
         # Determine which columns should be CheckboxColumns
-        checkbox_columns = df.columns[df.apply(lambda col: col.isin(['yes', 'no']).all())]
+        #checkbox_columns = df.columns[df.apply(lambda col: col.isin(['yes', 'no']).all())]
 
         # Configure columns using st.column_config
         column_config = {
