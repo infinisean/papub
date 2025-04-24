@@ -2,7 +2,7 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 
 def main():
-    st.set_page_config(page_title="Network Monitoring", layout="wide")
+    st.set_page_config(page_title="Publix Network Monitoring", layout="wide")
 
     # Sidebar navigation
     with st.sidebar:
@@ -17,25 +17,44 @@ def main():
     # Main content
     if selected == "Panorama":
         st.title("Panorama Dashboard")
-        tabs = st.tabs(["HA State", "Other Tab 1", "Other Tab 2"])
+        PANtabs = st.tabs(["HA State", "Panorama Health", "Connected Devices"])
 
-        with tabs[0]:
+        with PANtabs[0]:
             st.header("Panorama High-Availability State")
             # Import and execute the ha_state module
-            import ha_state
-            ha_state.display_ha_state()
+            import pan_ha_state
+            pan_ha_state.display_ha_state()
 
-        with tabs[1]:
-            st.header("Other Tab 1")
-            st.write("Content for other tab 1.")
+        with PANtabs[1]:
+            st.header("Panorama Health")
+            st.write("Panorama health information goes here.")
 
-        with tabs[2]:
-            st.header("Other Tab 2")
-            st.write("Content for other tab 2.")
+        with PANtabs[2]:
+            st.header("Connected Devices")
+            st.write("Connected devices information goes here. Click on a device to view details.")
 
     elif selected == "Palo Alto":
         st.title("Palo Alto Dashboard")
-        st.write("Content for Palo Alto.")
+        PAtabs = st.tabs(["Palo Device Overview", "Palo Tool1", "Palo Tool2"])
+        
+        with PAtabs[0]:
+            st.header("Palo Device Overview")
+            # Import and execute the palo_device_overview module
+            import palo_device_overview
+            palo_device_overview.display_device_overview()
+            
+        with PAtabs[1]:
+            st.header("Palo Tool1")
+            st.write("Palo tool1 information goes here.")
+            
+        with PAtabs[2]:
+            st.header("Palo Tool2")
+            st.write("Palo tool2 information goes here.")
+        
+                
+
+
+
 
 if __name__ == "__main__":
     main()
