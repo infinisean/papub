@@ -12,7 +12,8 @@ def main():
     st.set_page_config(page_title="Publix Network Monitoring", layout="wide")
 
     # Get the primary Panorama instance
-    primary_pan = get_primary_pan()
+    panorama_instances = ['A46PANORAMA', 'L17PANORAMA']  
+    primary_pan = get_primary_pan(panorama_instances)
     if primary_pan:
         st.sidebar.success(f"Primary Panorama: {primary_pan}")
     else:
