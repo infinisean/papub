@@ -253,9 +253,12 @@ def get_primary_pan(panorama_instances):
         if response.status_code == 200:
             xml_response = ET.fromstring(response.text)
             ha_state = xml_response.find('.//result/state')
-            if ha_state is not None and 'active' in ha_state.text.lower():
-                logging.debug(f"Primary Panorama instance found: {panorama}")
-                return panorama
+            if ha_state is not None:
+                state_text = ha_state.text.strip().lower()
+                logging.debug(f"HA state for {panorama}: {state_text}")
+                if 'active' in state_text:  # Check for the presence of "active"
+                    logging.debug(f"Primary Panorama instance found: {panorama}")
+                    return panorama
         else:
             logging.error(f"Failed to retrieve HA state from {panorama}. Status code: {response.status_code}")
 
