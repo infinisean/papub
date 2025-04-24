@@ -227,11 +227,15 @@ def get_pan_connected_devices(panorama):
 
     return devices_data
 
-def get_primary_pan(panorama_instances):
-    # Open a file for writing debug information
-    with open('/tmp/get_primary_pan_debug.log', 'w') as debug_file:
+def get_primary_pan(panorama_instances, debug_mode=False):
+    # Open a file for writing debug information if debug_mode is enabled
+    debug_file_path = '/tmp/get_primary_pan_debug.log'
+    debug_file = open(debug_file_path, 'w') if debug_mode else None
+
+    try:
         for panorama in panorama_instances:
-            debug_file.write(f"Checking Panorama instance: {panorama}\n")
+            if debug_mode:
+                debug_file.write(f"Checking Panorama instance: {panorama}\n")
             # Define the API command to retrieve HA state
             command = "<show><high-availability><state></state></high-availability></show>"
             
@@ -240,23 +244,29 @@ def get_primary_pan(panorama_instances):
             pankey_path = os.path.join(base_dir, 'pankey')
 
             # Read the Panorama API key
-            debug_file.write(f"Checking if Panorama API key file exists at: {pankey_path}\n")
+            if debug_mode:
+                debug_file.write(f"Checking if Panorama API key file exists at: {pankey_path}\n")
             if os.path.exists(pankey_path):
-                debug_file.write("Panorama API key file found\n")
+                if debug_mode:
+                    debug_file.write("Panorama API key file found\n")
                 panorama_api_key = read_file(pankey_path)
             else:
-                debug_file.write(f"Panorama API key file '{pankey_path}' not found.\n")
+                if debug_mode:
+                    debug_file.write(f"Panorama API key file '{pankey_path}' not found.\n")
                 continue
 
             headers = {'X-PAN-KEY': panorama_api_key}
             url = f"https://{panorama}/api/?type=op&cmd={command}"
-            debug_file.write(f"Sending request to Panorama: {url}\n")
+            if debug_mode:
+                debug_file.write(f"Sending request to Panorama: {url}\n")
             try:
                 response = requests.get(url, headers=headers, verify=False)
-                debug_file.write(f"Response status code: {response.status_code}\n")
-                debug_file.write(f"Response text: {response.text[:500]}\n")  # Log the first 500 characters of the response
+                if debug_mode:
+                    debug_file.write(f"Response status code: {response.status_code}\n")
+                    debug_file.write(f"Response text: {response.text[:500]}\n")  # Log the first 500 characters of the response
             except Exception as e:
-                debug_file.write(f"Exception occurred while sending request: {e}\n")
+                if debug_mode:
+                    debug_file.write(f"Exception occurred while sending request: {e}\n")
                 continue
 
             if response.status_code == 200:
@@ -265,16 +275,24 @@ def get_primary_pan(panorama_instances):
                     ha_state = xml_response.find('.//state')
                     if ha_state is not None:
                         state_text = ha_state.text.strip().lower()
-                        debug_file.write(f"HA state for {panorama}: {state_text}\n")
+                        if debug_mode:
+                            debug_file.write(f"HA state for {panorama}: {state_text}\n")
                         # Check if the state contains the word "active"
                         if 'active' in state_text:
-                            debug_file.write(f"Primary Panorama instance found: {panorama}\n")
+                            if debug_mode:
+                                debug_file.write(f"Primary Panorama instance found: {panorama}\n")
                             return panorama
                 except ET.ParseError as e:
-                    debug_file.write(f"Failed to parse XML response: {e}\n")
+                    if debug_mode:
+                        debug_file.write(f"Failed to parse XML response: {e}\n")
             else:
-                debug_file.write(f"Failed to retrieve HA state from {panorama}. Status code: {response.status_code}\n")
+                if debug_mode:
+                    debug_file.write(f"Failed to retrieve HA state from {panorama}. Status code: {response.status_code}\n")
 
-        debug_file.write("No active Panorama instance found.\n")
+        if debug_mode:
+            debug_file.write("No active Panorama instance found.\n")
+    finally:
+        if debug_file:
+            debug_file.close()
     return None
 
