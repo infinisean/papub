@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 from functions import get_primary_pan  # Ensure this import is correct based on your project structure
+from functions import setup_logging
 
 setup_logging(debug_mode=True)
 
