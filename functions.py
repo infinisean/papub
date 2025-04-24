@@ -229,7 +229,7 @@ def get_pan_connected_devices(panorama):
 
 def get_primary_pan(panorama_instances):
     for panorama in panorama_instances:
-        print(f"Checking Panorama instance: {panorama}")  # Debug print statement
+        logging.debug(f"Checking Panorama instance: {panorama}")
         # Define the API command to retrieve HA state
         command = "<show><high-availability><state></state></high-availability></show>"
         
