@@ -48,12 +48,11 @@ def main():
         PANtabs = st.tabs(["HA State", "Panorama Health", "Connected Devices"])
 
         with PANtabs[0]:
-            st.header("Panorama High-Availability State")
+            #st.header("Panorama High-Availability State")
             pan_ha_state.display_ha_state()
 
         with PANtabs[1]:
-            st.header("Panorama Health")
-            st.write("Panorama health information goes here.")
+            pan_health.display_pan_health()
 
         with PANtabs[2]:
             st.header("Connected Devices")
