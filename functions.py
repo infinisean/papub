@@ -9,7 +9,7 @@ from xml.dom import minidom
 
 def setup_logging(debug_mode):
     log_format = '%(asctime)s - %(levelname)s - %(message)s'
-    logging.basicConfig(filename='metrics.log', level=logging.DEBUG, format=log_format)
+    logging.basicConfig(filename='/tmp/newstream.log', level=logging.DEBUG, format=log_format)
     if debug_mode:
         console = logging.StreamHandler()
         console.setLevel(logging.DEBUG)
