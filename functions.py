@@ -17,7 +17,7 @@ def setup_logging(debug_mode):
         console.setFormatter(formatter)
         logging.getLogger('').addHandler(console)
 
-setup_logging(debug_mode=True)
+
 
 def read_file(file_path):
     logging.debug(f"Attempting to read file: {file_path}")

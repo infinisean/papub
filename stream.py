@@ -2,6 +2,8 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 from functions import get_primary_pan  # Ensure this import is correct based on your project structure
 
+setup_logging(debug_mode=True)
+
 @st.cache_data
 def get_cached_primary_pan():
     panorama_instances = ['a46panorama', 'l17panorama']  # Replace with actual Panorama hostnames
