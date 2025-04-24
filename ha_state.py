@@ -92,20 +92,6 @@ def display_ha_state():
         existing_keys = [key for key in key_vars if key in df.index]
         key_df = df.loc[existing_keys]
 
-        # Highlight the "state" variable
-        def highlight_state(val):
-            if val and 'active' in val:
-                return 'background-color: lightgreen'
-            elif val and 'passive' in val:
-                return 'background-color: lightyellow'
-            return ''
-
-        # Reset index before styling
-        key_df_reset = key_df.reset_index(drop=True)
-
-        # Apply highlighting to the key DataFrame
-        styled_key_df = key_df_reset.style.applymap(highlight_state, subset=['state'])
-
         # Calculate the height to display all rows without scrolling
         row_height = 35  # Approximate height per row in pixels
         key_height = row_height * len(key_df)
@@ -119,7 +105,7 @@ def display_ha_state():
 
         # Display the key DataFrame using Streamlit with column configuration and custom height
         st.subheader("Key HA State Variables")
-        st.dataframe(styled_key_df, column_config=column_config, height=key_height)
+        st.dataframe(key_df.reset_index(drop=True), column_config=column_config, height=key_height)
 
         # Separate the remaining DataFrame into additional variables
         additional_df = df.drop(index=existing_keys)
