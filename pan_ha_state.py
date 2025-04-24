@@ -96,14 +96,14 @@ def display_ha_state():
         row_height = 35  # Approximate height per row in pixels
         key_height = row_height * len(key_df)
 
-        PanA=panorama_instances[0].upper()
-        PanB=panorama_instances[1].upper()
+        #PanA=panorama_instances[0].upper()
+        #PanB=panorama_instances[1].upper()
 
         # Configure columns using st.column_config
         column_config = {
             "HA_State_Vars": st.column_config.TextColumn("HA_State_Vars", width=200),
-            PanA: st.column_config.TextColumn(panorama_instances[0], width=200),
-            PanB: st.column_config.TextColumn(panorama_instances[1], width=200)
+            panorama_instances[0]: st.column_config.TextColumn(panorama_instances[0], width=200),
+            panorama_instances[1]: st.column_config.TextColumn(panorama_instances[1], width=200)
         }
 
         # Display the key DataFrame using Streamlit with column configuration and custom height
