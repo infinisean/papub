@@ -1,8 +1,21 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
+from functions import get_primary_pan  # Ensure this import is correct based on your project structure
+
+@st.cache_data
+def get_cached_primary_pan():
+    panorama_instances = ['a46panorama', 'l17panorama']  # Replace with actual Panorama hostnames
+    return get_primary_pan(panorama_instances)
 
 def main():
     st.set_page_config(page_title="Publix Network Monitoring", layout="wide")
+
+    # Get the primary Panorama instance
+    primary_pan = get_cached_primary_pan()
+    if primary_pan:
+        st.sidebar.success(f"Primary Panorama: {primary_pan}")
+    else:
+        st.sidebar.error("No primary Panorama instance found.")
 
     # Sidebar navigation
     with st.sidebar:
@@ -44,17 +57,12 @@ def main():
             palo_device_overview.display_device_overview()
             
         with PAtabs[1]:
-            st.header("Palo Tool1")
-            st.write("Palo tool1 information goes here.")
+            st.header("Palo ARP Tables")
+            st.write("Palo ARP tables information goes here.")
             
         with PAtabs[2]:
             st.header("Palo Tool2")
             st.write("Palo tool2 information goes here.")
-        
-                
-
-
-
 
 if __name__ == "__main__":
     main()
