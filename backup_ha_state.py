@@ -77,6 +77,7 @@ def display_ha_state():
         df = df.fillna('')
 
         # Add a column for labels and perform string replacements
+        #df.index = df.index.str.replace('peer-info/', '', regex=False)
         df.index = df.index.str.replace('local-info/', '', regex=False)
         df.index = df.index.str.replace('/enabled', '', regex=False)
         df.insert(0, 'HA_State_Vars', df.index)
@@ -87,28 +88,6 @@ def display_ha_state():
         sorted_index = non_peer_index + peer_index
         df = df.loc[sorted_index]
 
-        # Define key variables and reorder them
-        key_vars = ['state', 'mgmt-ip', 'mgmt-macaddr', 'priority']
-        existing_keys = [key for key in key_vars if key in df.index]
-        key_df = df.loc[existing_keys]
-
-        # Highlight the "state" variable
-        def highlight_state(val):
-            if val and 'active' in val:
-                return 'background-color: lightgreen'
-            elif val and 'passive' in val:
-                return 'background-color: lightyellow'
-            return ''
-
-        # Reset index before styling
-        key_df_reset = key_df.reset_index(drop=True)
-
-        # Apply highlighting to the key DataFrame
-        styled_key_df = key_df_reset.style.applymap(highlight_state, subset=['state'])
-
-        # Calculate the height to display all rows without scrolling
-        row_height = 35  # Approximate height per row in pixels
-        key_height = row_height * len(key_df)
 
         # Configure columns using st.column_config
         column_config = {
@@ -117,17 +96,19 @@ def display_ha_state():
             panorama_instances[1]: st.column_config.TextColumn(panorama_instances[1], width=200)
         }
 
-        # Display the key DataFrame using Streamlit with column configuration and custom height
-        st.subheader("Key HA State Variables")
-        st.dataframe(styled_key_df, column_config=column_config, height=key_height)
+        # Separate the DataFrame into differing and identical rows
+        differing_df = df[df[panorama_instances[0]] != df[panorama_instances[1]]]
+        identical_df = df[df[panorama_instances[0]] == df[panorama_instances[1]]]
 
-        # Separate the remaining DataFrame into additional variables
-        additional_df = df.drop(index=existing_keys)
+        # Calculate the height to display all rows without scrolling
+        row_height = 35  # Approximate height per row in pixels
+        differing_height = row_height * len(differing_df)
+        identical_height = row_height * len(identical_df)
 
-        # Reset index for additional DataFrame
-        additional_df_reset = additional_df.reset_index(drop=True)
+        # Display the differing DataFrame using Streamlit with column configuration and custom height
+        st.subheader("Differing HA State Variables")
+        st.dataframe(differing_df.reset_index(drop=True), column_config=column_config, height=differing_height)
 
-        # Display the additional DataFrame in a collapsible section
-        with st.expander("Additional HA State Variables"):
-            st.dataframe(additional_df_reset, column_config=column_config, height=row_height * len(additional_df))
-        
+        # Display the identical DataFrame in a collapsible section
+        with st.expander("Identical HA State Variables"):
+            st.dataframe(identical_df.reset_index(drop=True), column_config=column_config, height=identical_height)
