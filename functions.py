@@ -228,40 +228,52 @@ def get_pan_connected_devices(panorama):
     return devices_data
 
 def get_primary_pan(panorama_instances):
-    for panorama in panorama_instances:
-        logging.debug(f"Checking Panorama instance: {panorama}")
-        # Define the API command to retrieve HA state
-        command = "<show><high-availability><state></state></high-availability></show>"
-        
-        # Use the absolute path for the credentials directory
-        base_dir = '/home/netmonitor/.cred'
-        pankey_path = os.path.join(base_dir, 'pankey')
+    # Open a file for writing debug information
+    with open('/tmp/get_primary_pan_debug.log', 'w') as debug_file:
+        for panorama in panorama_instances:
+            debug_file.write(f"Checking Panorama instance: {panorama}\n")
+            # Define the API command to retrieve HA state
+            command = "<show><high-availability><state></state></high-availability></show>"
+            
+            # Use the absolute path for the credentials directory
+            base_dir = '/home/netmonitor/.cred'
+            pankey_path = os.path.join(base_dir, 'pankey')
 
-        # Read the Panorama API key
-        logging.debug(f"Checking if Panorama API key file exists at: {pankey_path}")
-        if os.path.exists(pankey_path):
-            logging.debug("Panorama API key file found")
-            panorama_api_key = read_file(pankey_path)
-        else:
-            raise FileNotFoundError(f"Panorama API key file '{pankey_path}' not found.")
+            # Read the Panorama API key
+            debug_file.write(f"Checking if Panorama API key file exists at: {pankey_path}\n")
+            if os.path.exists(pankey_path):
+                debug_file.write("Panorama API key file found\n")
+                panorama_api_key = read_file(pankey_path)
+            else:
+                debug_file.write(f"Panorama API key file '{pankey_path}' not found.\n")
+                continue
 
-        headers = {'X-PAN-KEY': panorama_api_key}
-        url = f"https://{panorama}/api/?type=op&cmd={command}"
-        logging.debug(f"Sending request to Panorama: {url}")
-        response = requests.get(url, headers=headers, verify=False)
+            headers = {'X-PAN-KEY': panorama_api_key}
+            url = f"https://{panorama}/api/?type=op&cmd={command}"
+            debug_file.write(f"Sending request to Panorama: {url}\n")
+            try:
+                response = requests.get(url, headers=headers, verify=False)
+                debug_file.write(f"Response status code: {response.status_code}\n")
+                debug_file.write(f"Response text: {response.text[:500]}\n")  # Log the first 500 characters of the response
+            except Exception as e:
+                debug_file.write(f"Exception occurred while sending request: {e}\n")
+                continue
 
-        if response.status_code == 200:
-            xml_response = ET.fromstring(response.text)
-            ha_state = xml_response.find('.//result/state')
-            if ha_state is not None:
-                state_text = ha_state.text.strip().lower()
-                logging.debug(f"HA state for {panorama}: {state_text}")
-                if 'active' in state_text:  # Check for the presence of "active"
-                    logging.debug(f"Primary Panorama instance found: {panorama}")
-                    return panorama
-        else:
-            logging.error(f"Failed to retrieve HA state from {panorama}. Status code: {response.status_code}")
+            if response.status_code == 200:
+                try:
+                    xml_response = ET.fromstring(response.text)
+                    ha_state = xml_response.find('.//result/state')
+                    if ha_state is not None:
+                        state_text = ha_state.text.strip().lower()
+                        debug_file.write(f"HA state for {panorama}: {state_text}\n")
+                        if 'active' in state_text:  # Check for the presence of "active"
+                            debug_file.write(f"Primary Panorama instance found: {panorama}\n")
+                            return panorama
+                except ET.ParseError as e:
+                    debug_file.write(f"Failed to parse XML response: {e}\n")
+            else:
+                debug_file.write(f"Failed to retrieve HA state from {panorama}. Status code: {response.status_code}\n")
 
-    logging.error("No active Panorama instance found.")
+        debug_file.write("No active Panorama instance found.\n")
     return None
 
