@@ -95,6 +95,10 @@ def display_ha_state(primary_pan):
         existing_keys = [key for key in key_vars if key in df.index]
         key_df = df.loc[existing_keys]             
 
+        # Calculate the height to display all rows without scrolling
+        row_height = 35  # Approximate height per row in pixels
+        key_height = row_height * len(key_df)
+
         #PanA=panorama_instances[0].upper()
         #PanB=panorama_instances[1].upper()
 
