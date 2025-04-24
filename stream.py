@@ -5,7 +5,7 @@ from functions import setup_logging
 
 setup_logging(debug_mode=True)
 
-@st.cache_data
+#@st.cache_data
 def get_cached_primary_pan():
     panorama_instances = ['a46panorama', 'l17panorama']  # Replace with actual Panorama hostnames
     return get_primary_pan(panorama_instances)
