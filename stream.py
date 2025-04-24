@@ -7,26 +7,12 @@ from functions import setup_logging
 
 setup_logging(debug_mode=True)
 
-def get_cached_primary_pan():
-    panorama_instances = ['A46PANORAMA', 'L17PANORAMA']  # Replace with actual Panorama hostnames
-    #capitalize the panorama instances for consistency
-    panorama_instances = [panorama.capitalize() for panorama in panorama_instances]
-
-    # Check if primary Panorama instance is already cached
-    primary_pan = st.cache(None)(get_primary_pan)(panorama_instances)
-    
-    if primary_pan:
-        st.cache.clear()  # Clear cache if primary Panorama instance changes
-
-    return primary_pan
-    
-    return get_primary_pan(panorama_instances)
 
 def main():
     st.set_page_config(page_title="Publix Network Monitoring", layout="wide")
 
     # Get the primary Panorama instance
-    primary_pan = get_cached_primary_pan()
+    primary_pan = get_primary_pan()
     if primary_pan:
         st.sidebar.success(f"Primary Panorama: {primary_pan}")
     else:
