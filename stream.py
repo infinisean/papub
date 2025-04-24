@@ -36,7 +36,7 @@ def main():
 
         with PANtabs[0]:
             #st.header("Panorama High-Availability State")
-            pan_ha_state.display_ha_state()
+            pan_ha_state.display_ha_state(primary_pan)
 
         with PANtabs[1]:
             pan_health.display_pan_health()

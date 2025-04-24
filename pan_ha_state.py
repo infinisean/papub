@@ -60,9 +60,12 @@ def get_pan_ha_state(panorama_instances):
 
     return ha_states
 
-def display_ha_state():
+def display_ha_state(primary_pan):
     panorama_instances = ['A46PANORAMA', 'L17PANORAMA']  # Replace with actual Panorama hostnames
     ha_states = get_pan_ha_state(panorama_instances)
+
+    # Create Row Labels from the panorama instances, except we add a " <<< ACT" label for whichever instance is the primary one
+    pan_labels = [f"{panorama.upper()} <<< ACT" if panorama == primary_pan else panorama.upper() for panorama in panorama_instances]
 
     if ha_states:
         # Create a list of all unique labels
@@ -89,12 +92,8 @@ def display_ha_state():
 
         # Define key variables and reorder them
         key_vars = ['state', 'mgmt-ip', 'mgmt-macaddr', 'priority']
-        existing_keys = [key for key in key_vars if key in df.index]
-        key_df = df.loc[existing_keys]
-
-        # Calculate the height to display all rows without scrolling
-        row_height = 35  # Approximate height per row in pixels
-        key_height = row_height * len(key_df)
+        existing_keys = [key for                                                                                                                                                                                                                              xxxxxxxxxxxxx key in key_vars if key in df.index]
+        key_df = df.loc[existing_keys]             
 
         #PanA=panorama_instances[0].upper()
         #PanB=panorama_instances[1].upper()
@@ -102,8 +101,8 @@ def display_ha_state():
         # Configure columns using st.column_config
         column_config = {
             "HA_State_Vars": st.column_config.TextColumn("HA_State_Vars", width=200),
-            panorama_instances[0]: st.column_config.TextColumn(panorama_instances[0], width=200),
-            panorama_instances[1]: st.column_config.TextColumn(panorama_instances[1], width=200)
+            pan_labels[0]: st.column_config.TextColumn(panorama_instances[0], width=200),
+            pan_labels[1]: st.column_config.TextColumn(panorama_instances[1], width=200)
         }
 
         # Display the key DataFrame using Streamlit with column configuration and custom height
