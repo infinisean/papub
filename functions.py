@@ -266,7 +266,8 @@ def get_primary_pan(panorama_instances):
                     if ha_state is not None:
                         state_text = ha_state.text.strip().lower()
                         debug_file.write(f"HA state for {panorama}: {state_text}\n")
-                        if 'active' in state_text:  # Check for the presence of "active"
+                        # Check for specific active states
+                        if state_text in ['primary-active', 'secondary-active']:
                             debug_file.write(f"Primary Panorama instance found: {panorama}\n")
                             return panorama
                 except ET.ParseError as e:
