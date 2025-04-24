@@ -89,7 +89,7 @@ def query_firewall_data(hostname, live_db):
     headers = {'X-PAN-KEY': api_key}
 
     for metric, cmd in commands.items():
-        url = f"https://{hostname}/api/?type=op&amp;cmd={cmd}"
+        url = f"https://{hostname}/api/?type=op&cmd={cmd}"
         logging.debug(f"Sending request to URL: {url}")
         response = requests.get(url, headers=headers, verify=False)
         if response.status_code == 200:
