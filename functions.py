@@ -17,6 +17,8 @@ def setup_logging(debug_mode):
         console.setFormatter(formatter)
         logging.getLogger('').addHandler(console)
 
+setup_logging(debug_mode=True)
+
 def read_file(file_path):
     logging.debug(f"Attempting to read file: {file_path}")
     with open(file_path, 'r') as file:
@@ -219,6 +221,7 @@ def get_pan_connected_devices(panorama):
 
 def get_primary_pan(panorama_instances):
     for panorama in panorama_instances:
+        print(f"Checking Panorama instance: {panorama}")  # Debug print statement
         # Define the API command to retrieve HA state
         command = "<show><high-availability><state></state></high-availability></show>"
         
