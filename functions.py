@@ -9,14 +9,22 @@ from xml.dom import minidom
 
 def setup_logging(debug_mode):
     log_format = '%(asctime)s - %(levelname)s - %(message)s'
-    logging.basicConfig(filename='/tmp/newstream.log', level=logging.DEBUG, format=log_format)
-    if debug_mode:
-        console = logging.StreamHandler()
-        console.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(log_format)
-        console.setFormatter(formatter)
-        logging.getLogger('').addHandler(console)
-
+    try:
+        # Force the logging configuration to override any existing settings
+        logging.basicConfig(filename='/tmp/newstream.log', level=logging.DEBUG, format=log_format, force=True)
+        
+        # Add console logging if debug_mode is True
+        if debug_mode:
+            console = logging.StreamHandler()
+            console.setLevel(logging.DEBUG)
+            formatter = logging.Formatter(log_format)
+            console.setFormatter(formatter)
+            logging.getLogger('').addHandler(console)
+        
+        logging.debug("Logging setup complete.")
+    except Exception as e:
+        print(f"Failed to set up logging: {e}")
+    
 
 
 def read_file(file_path):
