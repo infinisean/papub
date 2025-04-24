@@ -1,13 +1,25 @@
 import streamlit as st
+import pan_ha_state
+import pan_health
 from streamlit_option_menu import option_menu
 from functions import get_primary_pan  # Ensure this import is correct based on your project structure
 from functions import setup_logging
 
 setup_logging(debug_mode=True)
 
-#@st.cache_data
 def get_cached_primary_pan():
-    panorama_instances = ['a46panorama', 'l17panorama']  # Replace with actual Panorama hostnames
+    panorama_instances = ['A46PANORAMA', 'L17PANORAMA']  # Replace with actual Panorama hostnames
+    #capitalize the panorama instances for consistency
+    panorama_instances = [panorama.capitalize() for panorama in panorama_instances]
+
+    # Check if primary Panorama instance is already cached
+    primary_pan = st.cache(None)(get_primary_pan)(panorama_instances)
+    
+    if primary_pan:
+        st.cache.clear()  # Clear cache if primary Panorama instance changes
+
+    return primary_pan
+    
     return get_primary_pan(panorama_instances)
 
 def main():
@@ -37,8 +49,6 @@ def main():
 
         with PANtabs[0]:
             st.header("Panorama High-Availability State")
-            # Import and execute the ha_state module
-            import pan_ha_state
             pan_ha_state.display_ha_state()
 
         with PANtabs[1]:

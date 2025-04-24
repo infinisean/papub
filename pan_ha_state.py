@@ -61,7 +61,7 @@ def get_pan_ha_state(panorama_instances):
     return ha_states
 
 def display_ha_state():
-    panorama_instances = ['a46panorama', 'l17panorama']  # Replace with actual Panorama hostnames
+    panorama_instances = ['A46PANORAMA', 'L17PANORAMA']  # Replace with actual Panorama hostnames
     ha_states = get_pan_ha_state(panorama_instances)
 
     if ha_states:
