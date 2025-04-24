@@ -92,7 +92,7 @@ def display_ha_state(primary_pan):
 
         # Define key variables and reorder them
         key_vars = ['state', 'mgmt-ip', 'mgmt-macaddr', 'priority']
-        existing_keys = [key for                                                                                                                                                                                                                              xxxxxxxxxxxxx key in key_vars if key in df.index]
+        existing_keys = [key for key in key_vars if key in df.index]
         key_df = df.loc[existing_keys]             
 
         #PanA=panorama_instances[0].upper()
