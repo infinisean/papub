@@ -262,12 +262,12 @@ def get_primary_pan(panorama_instances):
             if response.status_code == 200:
                 try:
                     xml_response = ET.fromstring(response.text)
-                    ha_state = xml_response.find('.//result/state')
+                    ha_state = xml_response.find('.//state')
                     if ha_state is not None:
                         state_text = ha_state.text.strip().lower()
                         debug_file.write(f"HA state for {panorama}: {state_text}\n")
-                        # Check for specific active states
-                        if state_text in ['primary-active', 'secondary-active']:
+                        # Check if the state contains the word "active"
+                        if 'active' in state_text:
                             debug_file.write(f"Primary Panorama instance found: {panorama}\n")
                             return panorama
                 except ET.ParseError as e:
