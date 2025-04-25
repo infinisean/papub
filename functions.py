@@ -239,10 +239,9 @@ def get_active_pan(panorama_instances):
             if response.status_code == 200:
                 try:
                     xml_response = ET.fromstring(response.text)
-                    ha_state = xml_response.find('.//result/state')
-                    # write ha_state text to debug file
-                    debug_file.write(f"HA state element found: {ha_state is not None}\n")
-                    debug_file.write(f"HA state text: {ha_state.text}\n")
+                    # write raw xml_response to debug file
+                    debug_file.write(f"Raw XML response: {xml_response}\n")
+     
                         
                     # Check for specific active states
                     if ha_state.text.strip().lower() in ['primary-active','secondary-active']:
