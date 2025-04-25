@@ -1,3 +1,4 @@
+import sys
 sys.path.append('/home/netmonitor/palostream')
 import streamlit as st
 from streamlit_option_menu import option_menu
