@@ -11,6 +11,7 @@ import pandas as pd
 import streamlit as st
 
 
+
 def setup_logging(debug_mode):
     # Define a log format that includes the script name and line number
     log_format = '%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'
