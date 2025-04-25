@@ -1,3 +1,4 @@
+sys.path.append('/home/netmonitor/palostream')
 import streamlit as st
 from streamlit_option_menu import option_menu
 #from functions import get_active_pan, setup_logging
