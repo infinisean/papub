@@ -3,7 +3,7 @@ sys.path.append('/home/netmonitor/palostream')
 import streamlit as st
 from streamlit_option_menu import option_menu
 #from functions import get_active_pan, setup_logging
-import pan_functions
+import /home/netmonitor/palostream/pan_functions
 #import pan_ha_state
 #import pan_health
 #from pan_devices import get_pan_devices  # Import the get_pan_devices function
