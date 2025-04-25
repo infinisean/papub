@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 #from functions import get_active_pan, setup_logging
-import functions
+import pan_functions
 #import pan_ha_state
 #import pan_health
 #from pan_devices import get_pan_devices  # Import the get_pan_devices function
