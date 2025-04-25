@@ -266,13 +266,7 @@ def get_pan_devices(active_panorama):
 
     pankey = read_pan_api_key()
 
-    # Read the Panorama API key
-    if os.path.exists(pankey_path):
-        panorama_api_key = read_file(pankey_path)
-    else:
-        raise FileNotFoundError(f"Panorama API key file '{pankey_path}' not found.")
-
-    headers = {'X-PAN-KEY': panorama_api_key}
+    headers = {'X-PAN-KEY': pankey}
     url = f"https://{active_panorama}/api/?type=op&cmd={command}"
     logging.debug(f"Sending request to Panorama: {url}")
     response = requests.get(url, headers=headers, verify=False)
