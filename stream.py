@@ -1,19 +1,31 @@
 import streamlit as st
-import pan_ha_state
-import pan_health
 from streamlit_option_menu import option_menu
 from functions import get_primary_pan  # Ensure this import is correct based on your project structure
 from functions import setup_logging
+import pan_ha_state
+import pan_health
+from pan_devices import get_pan_devices  # Import the get_pan_devices function
 
 setup_logging(debug_mode=True)
 
+def get_cached_primary_pan():
+    panorama_instances = ['A46PANORAMA', 'L17PANORAMA']  # Replace with actual Panorama hostnames
+    # Capitalize the panorama instances for consistency
+    panorama_instances = [panorama.capitalize() for panorama in panorama_instances]
+
+    # Check if primary Panorama instance is already cached
+    primary_pan = st.cache(None)(get_primary_pan)(panorama_instances)
+    
+    if primary_pan:
+        st.cache.clear()  # Clear cache if primary Panorama instance changes
+
+    return primary_pan
 
 def main():
     st.set_page_config(page_title="Publix Network Monitoring", layout="wide")
 
     # Get the primary Panorama instance
-    panorama_instances = ['A46PANORAMA', 'L17PANORAMA']  
-    primary_pan = get_primary_pan(panorama_instances)
+    primary_pan = get_cached_primary_pan()
     if primary_pan:
         st.sidebar.success(f"Primary Panorama: {primary_pan}")
     else:
@@ -35,7 +47,7 @@ def main():
         PANtabs = st.tabs(["HA State", "Panorama Health", "Connected Devices"])
 
         with PANtabs[0]:
-            #st.header("Panorama High-Availability State")
+            st.header("Panorama High-Availability State")
             pan_ha_state.display_ha_state(primary_pan)
 
         with PANtabs[1]:
@@ -43,7 +55,9 @@ def main():
 
         with PANtabs[2]:
             st.header("Connected Devices")
-            st.write("Connected devices information goes here. Click on a device to view details.")
+            # Call the get_pan_devices function with the primary Panorama instance
+            get_pan_devices(primary_pan)
+            st.write("Connected devices information has been written to a JSON file.")
 
     elif selected == "Palo Alto":
         st.title("Palo Alto Dashboard")
