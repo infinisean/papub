@@ -305,6 +305,9 @@ def get_pan_devices(active_panorama):
             model = device.find('model').text if device.find('model') is not None else 'N/A'
             serial = device.find('serial').text if device.find('serial') is not None else 'N/A'
             mgmt_ip = device.find('ip-address').text if device.find('ip-address') is not None else 'N/A'
+            mac_address = device.find('mac-address').text if device.find('mac-address') is not None else 'N/A'
+            sw_version = device.find('sw-version').text if device.find('sw-version') is not None else 'N/A'
+            uptime = device.find('uptime').text if device.find('uptime') is not None else 'N/A'
             
             # Only add devices where not all fields are "N/A"
             if not (hostname == model == serial == mgmt_ip == 'N/A'):
@@ -312,7 +315,10 @@ def get_pan_devices(active_panorama):
                     'hostname': hostname,
                     'model': model,
                     'serial': serial,
-                    'mgmt_ip': mgmt_ip
+                    'mgmt_ip': mgmt_ip,
+                    'mac_address': mac_address,
+                    'sw_version': sw_version,
+                    'uptime': uptime
                 })
     else:
         logging.error(f"Failed to retrieve connected devices from {active_panorama}. Status code: {response.status_code}")
@@ -445,6 +451,7 @@ def display_ha_state(primary_pan):
             
 def display_pan_devices(pan_devices): 
     # Create a DataFrame with columns for hostname, model, serial, and mgmt_ip
+    '''
     fields_to_display = [
         'hostname', 'ip-address', 'default-gateway', 'mac-address', 'uptime',
         'model', 'serial', 'base_mac', 'mac_count', 'sw-version',
@@ -452,6 +459,8 @@ def display_pan_devices(pan_devices):
         'threat-release-date', 'url-filtering-version', 'operational-mode',
         'device-certificate-status'
     ]
+    '''
+    fields_to_display = ['hostname','model','serial','mgmt_ip','mac_address','sw_version','uptime' ]  # Replace with the actual fields to display
 
     # Convert the list of device dictionaries to a DataFrame
     df = pd.DataFrame(pan_devices)
