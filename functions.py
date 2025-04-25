@@ -76,7 +76,7 @@ def read_pan_api_key():
     else:
         raise FileNotFoundError(f"Panorama API key file '{pankey_path}' not found.")
 
-def send_api_query(hostname, api_key="none", query_type="op", command="none"):
+def send_api_query(hostname, api_key, query_type, command):
     """
     Centralized function to handle API queries.
     
@@ -103,13 +103,15 @@ def send_api_query(hostname, api_key="none", query_type="op", command="none"):
 
 def get_pan_connected_devices(panorama):
     # Define the API command to retrieve connected devices
+    query_type = 'op'
     command = '<show><devices><connected></connected></devices></show>'
+    
     
     # Read the Panorama API key
     pan_api_key = read_pan_api_key()
 
     # Use the centralized API query function
-    raw_response = send_api_query(panorama, pan_api_key, query_type="op", command)
+    raw_response = send_api_query(panorama, pan_api_key, query_type, command)
     if raw_response is None:
         return []
 
