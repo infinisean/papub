@@ -305,7 +305,7 @@ def get_pan_devices(active_panorama):
             model = device.find('model').text if device.find('model') is not None else 'N/A'
             serial = device.find('serial').text if device.find('serial') is not None else 'N/A'
             mgmt_ip = device.find('ip-address').text if device.find('ip-address') is not None else 'N/A'
-            mac_address = device.find('mac-address').text if device.find('mac-address') is not None else 'N/A'
+            mac_address = device.find('mac-addr').text if device.find('mac-addr') is not None else 'N/A'
             sw_version = device.find('sw-version').text if device.find('sw-version') is not None else 'N/A'
             uptime = device.find('uptime').text if device.find('uptime') is not None else 'N/A'
             
