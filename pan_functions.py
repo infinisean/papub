@@ -6,7 +6,7 @@ import argparse
 import logging
 from xml.etree import ElementTree as ET
 from xml.dom import minidom
-
+import pandas as pd
 
 def setup_logging(debug_mode):
     # Define a log format that includes the script name and line number

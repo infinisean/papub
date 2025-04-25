@@ -1,7 +1,6 @@
 import sys, os
 sys.path.append('/home/netmonitor/palostream')
 import streamlit as st
-import pandas as pd
 from streamlit_option_menu import option_menu
 #from functions import get_active_pan, setup_logging
 from pan_functions import setup_logging, read_file, get_db_credentials, palo_gen_api_key, read_pan_api_key 
