@@ -23,7 +23,7 @@ def main():
     panorama_instances = ['A46PANORAMA', 'L17PANORAMA']  # Replace with actual Panorama hostnames
     active_pan = get_active_pan(panorama_instances)
     if active_pan:
-        st.sidebar.success(f"Primary Pan: {active_pan}")
+        st.sidebar.success(f"Active Pan:   {active_pan}")
     else:
         st.sidebar.error("No primary Pan found.")
         exit()
