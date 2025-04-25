@@ -66,6 +66,22 @@ def display_ha_state(primary_pan):
 
     # Create Row Labels from the panorama instances, except we add a " <<< ACT" label for whichever instance is the primary one
     pan_labels = [f"{panorama.upper()} <<< ACT" if panorama == primary_pan else panorama.upper() for panorama in panorama_instances]
+    # write the pan_labels to a file
+    pan_labels_path = "/tmp/palo/pan_labels.txt"
+    with open(pan_labels_path, 'w') as file:
+        file.write('\n'.join(pan_labels))
+
+    # Display the DataFrame with HA state variables
+    st.subheader("HA State Variables")
+    st.dataframe(key_df)
+
+    # Display the DataFrame with all HA state variables
+    st.subheader("All HA State Variables")
+    st.dataframe(df)
+
+    # Display the Panorama labels
+    st.subheader("Panorama Labels")
+    st.text(read_file(pan_labels_path))
 
     if ha_states:
         # Create a list of all unique labels

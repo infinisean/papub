@@ -25,8 +25,6 @@ def setup_logging(debug_mode):
     except Exception as e:
         print(f"Failed to set up logging: {e}")
     
-
-
 def read_file(file_path):
     logging.debug(f"Attempting to read file: {file_path}")
     with open(file_path, 'r') as file:

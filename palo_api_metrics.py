@@ -12,7 +12,6 @@ from xml.dom import minidom
 
 
 
-
 def main():
     parser = argparse.ArgumentParser(description='Gather metrics for a specified firewall.')
     parser.add_argument('store_number', type=int, help='The 4-digit store number of the firewall')
