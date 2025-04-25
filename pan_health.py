@@ -5,14 +5,14 @@ def display_pan_health():
     st.header("Panorama Health")
     pan_api_key = read_api_key()
     query_type = "op"
-    command = "<show>"
+    command = "<show><system><resources></resources></system></show>"
     # Define the Panorama instances
     panorama_instances = ['A46PANORAMA', 'L17PANORAMA']  # Replace with actual Panorama hostnames
 
     # Query health data for each Panorama instance
     health_data = {}
     for panorama_host in panorama_instances:
-        health_data[panorama_host] = query_firewall_data(panorama, live_db=False)
+        #health_data[panorama_host] = query_firewall_data(panorama, live_db=False)
         health_data[panorama_host] = send_api_query(panorama_host, pan_api_key, query_type, command)
 
     # Display the health data in a structured format
