@@ -442,7 +442,7 @@ def display_ha_state(primary_pan):
         with st.expander("Additional HA States"):
             st.dataframe(additional_df_reset, column_config=column_config, height=row_height * len(additional_df))
             
-def display_pan_devices(pan_devices) 
+def display_pan_devices(pan_devices): 
     # Create a DataFrame with columns for hostname, model, serial, and mgmt_ip
     fields_to_display = [
         'hostname', 'ip-address', 'default-gateway', 'mac-address', 'uptime',
