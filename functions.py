@@ -7,6 +7,7 @@ import logging
 from xml.etree import ElementTree as ET
 from xml.dom import minidom
 
+
 def setup_logging(debug_mode):
     # Define a log format that includes the script name and line number
     log_format = '%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'
@@ -101,7 +102,7 @@ def send_api_query(hostname, api_key, query_type, command):
             logging.error(f"Failed to retrieve data from {hostname}. Status code: {response.status_code}")
             return None
 
-def get_pan_connected_devices(panorama):
+def get_pan_connected_devices(active_panorama):
     # Define the API command to retrieve connected devices
     query_type = 'op'
     command = '<show><devices><connected></connected></devices></show>'
@@ -111,7 +112,7 @@ def get_pan_connected_devices(panorama):
     pan_api_key = read_pan_api_key()
 
     # Use the centralized API query function
-    raw_response = send_api_query(panorama, pan_api_key, query_type, command)
+    raw_response = send_api_query(active_panorama, pan_api_key, query_type, command)
     if raw_response is None:
         return []
 
@@ -256,3 +257,176 @@ def get_active_pan(panorama_instances):
         debug_file.write("No active Panorama instance found.\n")
     return None
 
+def get_pan_devices(active_panorama):
+    
+    # Define the API command to retrieve connected devices
+    command = '<show><devices><connected></connected></devices></show>'
+
+    pankey = read_pan_api_key()
+
+    # Read the Panorama API key
+    if os.path.exists(pankey_path):
+        panorama_api_key = read_file(pankey_path)
+    else:
+        raise FileNotFoundError(f"Panorama API key file '{pankey_path}' not found.")
+
+    headers = {'X-PAN-KEY': panorama_api_key}
+    url = f"https://{active_panorama}/api/?type=op&cmd={command}"
+    logging.debug(f"Sending request to Panorama: {url}")
+    response = requests.get(url, headers=headers, verify=False)
+
+    devices_data = []
+    if response.status_code == 200:
+        xml_response = ET.fromstring(response.text)
+        
+        # Debug: Write the raw XML response to a file
+        raw_xml_path = "/tmp/palo/raw_devices.xml"
+        with open(raw_xml_path, 'w') as file:
+            file.write(response.text)
+        logging.debug(f"Raw XML response written to {raw_xml_path}")
+
+        devices = xml_response.findall('.//entry')
+        for device in devices:
+            # Debug: Print the device XML for inspection
+            logging.debug(f"Device XML: {ET.tostring(device, encoding='unicode')}")
+
+            hostname = device.find('hostname').text if device.find('hostname') is not None else 'N/A'
+            model = device.find('model').text if device.find('model') is not None else 'N/A'
+            serial = device.find('serial').text if device.find('serial') is not None else 'N/A'
+            mgmt_ip = device.find('ip-address').text if device.find('ip-address') is not None else 'N/A'
+            
+            # Only add devices where not all fields are "N/A"
+            if not (hostname == model == serial == mgmt_ip == 'N/A'):
+                devices_data.append({
+                    'hostname': hostname,
+                    'model': model,
+                    'serial': serial,
+                    'mgmt_ip': mgmt_ip
+                })
+    else:
+        logging.error(f"Failed to retrieve connected devices from {active_panorama}. Status code: {response.status_code}")
+
+    # Write the devices data to a JSON file
+    json_file_path = "/tmp/palo/connected_devices.json"
+    with open(json_file_path, 'w') as json_file:
+        json.dump(devices_data, json_file, indent=4)
+    logging.debug(f"Connected devices data written to {json_file_path}")
+    return devices_data
+
+def parse_element_to_dict(element, parent_tag=""):
+    """Recursively parse XML elements and return a dictionary."""
+    data = {}
+    for child in element:
+        tag = f"{parent_tag}/{child.tag}" if parent_tag else child.tag
+        if len(child):  # If the element has children, recurse
+            data.update(parse_element_to_dict(child, tag))
+        else:
+            data[tag] = child.text
+    return data
+
+def get_pan_ha_state(panorama_instances):
+    ha_states = {}
+    for panorama in panorama_instances:
+        command = "<show><high-availability><state></state></high-availability></show>" #DO NOT CHANGE THIS LINE AT ALL
+
+        base_dir = '/home/netmonitor/.cred'
+        pankey_path = os.path.join(base_dir, 'pankey')
+
+        # Read the Panorama API key
+        if os.path.exists(pankey_path):
+            panorama_api_key = read_file(pankey_path)
+        else:
+            st.error(f"Panorama API key file '{pankey_path}' not found.")
+            return
+
+        headers = {'X-PAN-KEY': panorama_api_key}
+        url = f"https://{panorama}/api/?type=op&cmd={command}" #DO NOT CHANGE THIS LINE AT ALL
+        response = requests.get(url, headers=headers, verify=False)
+
+        if response.status_code == 200:
+            # Save raw XML response to a file
+            raw_data_path = f"/tmp/palo/{panorama}_ha-state.txt"
+            os.makedirs(os.path.dirname(raw_data_path), exist_ok=True)
+            with open(raw_data_path, 'w') as file:
+                file.write(response.text)
+
+            xml_response = ET.fromstring(response.text)
+            ha_state = xml_response.find('.//result')
+            if ha_state is not None:
+                ha_states[panorama] = parse_element_to_dict(ha_state)
+            else:
+                st.error(f"Failed to parse HA state from {panorama}.")
+        else:
+            st.error(f"Failed to retrieve HA state from {panorama}. Status code: {response.status_code}")
+
+    return ha_states
+
+def display_ha_state(primary_pan):
+    panorama_instances = ['A46PANORAMA', 'L17PANORAMA']  # Replace with actual Panorama hostnames
+    ha_states = get_pan_ha_state(panorama_instances)
+
+    # Create Row Labels from the panorama instances, except we add a " <<< ACT" label for whichever instance is the primary one
+    pan_labels = [f"{panorama.upper()} <<< ACT" if panorama == primary_pan else panorama.upper() for panorama in panorama_instances]
+    # Write the pan_labels to a file
+    pan_labels_path = "/tmp/palo/pan_labels.txt"
+    with open(pan_labels_path, 'w') as file:
+        file.write('\n'.join(pan_labels))
+
+    if ha_states:
+        # Write ha_states.items() to a file for debugging
+        ha_states_items_path = "/tmp/palo/ha_states_items.txt"
+        with open(ha_states_items_path, 'w') as file:
+            for host, data in ha_states.items():
+                file.write(f"Host: {host}\nData: {data}\n\n")
+
+        # Create a list of all unique labels
+        all_labels = list(set().union(*[data.keys() for data in ha_states.values()]))
+        # Create a DataFrame with labels as rows and hosts as columns
+        df = pd.DataFrame(index=all_labels)
+
+        for host, data in ha_states.items():
+            df[host] = pd.Series(data)
+
+        # Fill NaN with empty strings
+        df = df.fillna('')
+
+        # Add a column for labels and perform string replacements
+        df.index = df.index.str.replace('local-info/', '', regex=False)
+        df.index = df.index.str.replace('/enabled', '', regex=False)
+        df.insert(0, 'HA_State_Vars', df.index)
+
+        # Sort the index: non-peer first, then peer, both alphabetically
+        non_peer_index = sorted([idx for idx in df.index if "peer" not in idx])
+        peer_index = sorted([idx for idx in df.index if "peer" in idx])
+        sorted_index = non_peer_index + peer_index
+        df = df.loc[sorted_index]
+
+        # Define key variables and reorder them
+        key_vars = ['state', 'mgmt-ip', 'mgmt-macaddr', 'priority']
+        existing_keys = [key for key in key_vars if key in df.index]
+        key_df = df.loc[existing_keys]             
+
+        # Calculate the height to display all rows without scrolling
+        row_height = 35  # Approximate height per row in pixels
+        key_height = row_height * len(key_df)
+
+        # Configure columns using st.column_config
+        column_config = {
+            "HA_State_Vars": st.column_config.TextColumn("HA_State_Vars", width=200),
+            pan_labels[0]: st.column_config.TextColumn(pan_labels[0], width=200),
+            pan_labels[1]: st.column_config.TextColumn(pan_labels[1], width=200)
+        }
+
+        # Display the key DataFrame using Streamlit with column configuration and custom height
+        st.subheader("Key HA State Variables")
+        st.dataframe(key_df.reset_index(drop=True), column_config=column_config, height=key_height)
+
+        # Separate the remaining DataFrame into additional variables
+        additional_df = df.drop(index=existing_keys)
+
+        # Reset index for additional DataFrame
+        additional_df_reset = additional_df.reset_index(drop=True)
+
+        # Display the additional DataFrame in a collapsible section
+        with st.expander("Additional HA State Variables"):
+            st.dataframe(additional_df_reset, column_config=column_config, height=row_height * len(additional_df))
