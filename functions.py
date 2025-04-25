@@ -26,8 +26,6 @@ def setup_logging(debug_mode):
     except Exception as e:
         print(f"Failed to set up logging: {e}")
 
-
-
 def read_file(file_path):
     logging.debug(f"Attempting to read file: {file_path}")
     with open(file_path, 'r') as file:
@@ -48,7 +46,7 @@ def get_db_credentials():
     else:
         raise FileNotFoundError("DB credentials file 'dbcreds' not found.")
 
-def get_api_key(hostname, username, password):
+def palo_gen_api_key(hostname, username, password):
     logging.debug(f"Generating API key for hostname: {hostname}")
     url = f"https://{hostname}/api/?type=keygen"
     payload = {'user': username, 'password': password}
@@ -61,53 +59,86 @@ def get_api_key(hostname, username, password):
     logging.error("API key generation failed")
     return None
 
-def query_firewall_data(hostname, live_db):
-    # Use the absolute path for the credentials directory
+def read_pan_api_key():
+    """
+    Function to read the Panorama API key from a file.
+    
+    :return: The API key as a string.
+    :raises FileNotFoundError: If the API key file is not found.
+    """
     base_dir = '/home/netmonitor/.cred'
     pankey_path = os.path.join(base_dir, 'pankey')
-    pacreds_path = os.path.join(base_dir, 'pacreds')
 
-    # Read the Panorama API key
     logging.debug(f"Checking if Panorama API key file exists at: {pankey_path}")
     if os.path.exists(pankey_path):
         logging.debug("Panorama API key file found")
-        panorama_api_key = read_file(pankey_path)
+        return read_file(pankey_path)
     else:
         raise FileNotFoundError(f"Panorama API key file '{pankey_path}' not found.")
 
-    # Read the Palo Alto credentials
-    logging.debug(f"Checking if Palo Alto credentials file exists at: {pacreds_path}")
-    if os.path.exists(pacreds_path):
-        logging.debug("Palo Alto credentials file found")
-        palo_creds = read_file(pacreds_path).split(',')
-        if len(palo_creds) != 2:
-            raise ValueError("Palo Alto credentials file 'pacreds' is not formatted correctly.")
-        palo_username, palo_password = palo_creds
-    else:
-        raise FileNotFoundError("Palo Alto credentials file 'pacreds' not found.")
-
-    # Use the hostname directly
-    api_key = get_api_key(hostname, palo_username, palo_password)
-
-    # Define the API endpoints and commands
-    commands = {
-        'system_resources': "<show><system><resources></resources></system></show>",
-        'arp_table': "<show><arp><entry name='all'></entry></arp></show>"  # Updated ARP command
-    }
-
+def send_api_query(hostname, api_key="none", query_type="op", command="none"):
+    """
+    Centralized function to handle API queries.
+    
+    :param hostname: The hostname of the Panorama instance.
+    :param command: The API command to execute.
+    :param api_key: The API key for authentication.
+    :param query_type: The type of query (e.g., "op", "config").
+    :return: The raw response text from the API query.
+    """
     headers = {'X-PAN-KEY': api_key}
-
-    for metric, cmd in commands.items():
-        url = f"https://{hostname}/api/?type=op&cmd={cmd}"
-        logging.debug(f"Sending request to URL: {url}")
-        response = requests.get(url, headers=headers, verify=False)
+    url = f"https://{hostname}/api/?type={query_type}&cmd={command}"
+    
+    with requests.Session() as session:
+        session.headers.update(headers)
+        logging.debug(f"Sending request to {hostname}: {url}")
+        response = session.get(url, verify=False)
+        
         if response.status_code == 200:
-            if metric == 'system_resources':
-                parse_system_resources(response.text, hostname, live_db)
-            else:
-                logging.debug(f"Received data for {metric}")
+            logging.debug(f"Received response from {hostname}")
+            return response.text
         else:
-            logging.error(f"Failed to retrieve data for {metric}. Status code: {response.status_code}")
+            logging.error(f"Failed to retrieve data from {hostname}. Status code: {response.status_code}")
+            return None
+
+def get_pan_connected_devices(panorama):
+    # Define the API command to retrieve connected devices
+    command = '<show><devices><connected></connected></devices></show>'
+    
+    # Read the Panorama API key
+    pan_api_key = read_pan_api_key()
+
+    # Use the centralized API query function
+    raw_response = send_api_query(panorama, pan_api_key, query_type="op", command)
+    if raw_response is None:
+        return []
+
+    # Parse the response
+    devices_data = []
+    try:
+        xml_response = ET.fromstring(raw_response)
+        devices = xml_response.findall('.//entry')
+        for device in devices:
+            hostname = device.find('hostname').text if device.find('hostname') is not None else 'N/A'
+            model = device.find('model').text if device.find('model') is not None else 'N/A'
+            serial = device.find('serial').text if device.find('serial') is not None else 'N/A'
+            mgmt_ip = device.find('ip-address').text if device.find('ip-address') is not None else 'N/A'
+            
+            # Only add devices where not all fields are "N/A"
+            if not (hostname == model == serial == mgmt_ip == 'N/A'):
+                devices_data.append({
+                    'hostname': hostname,
+                    'model': model,
+                    'serial': serial,
+                    'mgmt_ip': mgmt_ip
+                })
+        
+        # Sort devices by hostname
+        devices_data = sorted(devices_data, key=lambda x: x['hostname'])
+    except ET.ParseError as e:
+        logging.error(f"Failed to parse XML response: {e}")
+
+    return devices_data
 
 def parse_system_resources(response_text, hostname, live_db):
     # Extract the relevant lines from the response
@@ -171,63 +202,6 @@ def parse_system_resources(response_text, hostname, live_db):
         # Print the SQL query for debugging
         logging.debug(f"SQL Query: {insert_query % data}")
 
-def get_pan_connected_devices(panorama):
-    # Define the API command to retrieve connected devices
-    command = '<show><devices><connected></connected></devices></show>'
- 
-    # Use the absolute path for the credentials directory
-    base_dir = '/home/netmonitor/.cred'
-    pankey_path = os.path.join(base_dir, 'pankey')
-
-    # Read the Panorama API key
-    logging.debug(f"Checking if Panorama API key file exists at: {pankey_path}")
-    if os.path.exists(pankey_path):
-        logging.debug("Panorama API key file found")
-        panorama_api_key = read_file(pankey_path)
-    else:
-        raise FileNotFoundError(f"Panorama API key file '{pankey_path}' not found.")
-
-    headers = {'X-PAN-KEY': panorama_api_key}
-    url = f"https://{panorama}/api/?type=op&cmd={command}"
-    logging.debug(f"Sending request to Panorama: {url}")
-    response = requests.get(url, headers=headers, verify=False)
-
-    # Pretty print the raw response data and write to a temporary file for debugging
-    tmp_file_path = f"/tmp/palo/{panorama}_devices_response.xml"
-    try:
-        xml_pretty_str = minidom.parseString(response.text).toprettyxml(indent="  ")
-        with open(tmp_file_path, 'w') as tmp_file:
-            tmp_file.write(xml_pretty_str)
-        logging.debug(f"Pretty XML response data written to {tmp_file_path}")
-    except Exception as e:
-        logging.error(f"Failed to pretty print XML: {e}")
-
-    devices_data = []
-    if response.status_code == 200:
-        xml_response = ET.fromstring(response.text)
-        devices = xml_response.findall('.//entry')
-        for device in devices:
-            hostname = device.find('hostname').text if device.find('hostname') is not None else 'N/A'
-            model = device.find('model').text if device.find('model') is not None else 'N/A'
-            serial = device.find('serial').text if device.find('serial') is not None else 'N/A'
-            mgmt_ip = device.find('ip-address').text if device.find('ip-address') is not None else 'N/A'
-            
-            # Only add devices where not all fields are "N/A"
-            if not (hostname == model == serial == mgmt_ip == 'N/A'):
-                devices_data.append({
-                    'hostname': hostname,
-                    'model': model,
-                    'serial': serial,
-                    'mgmt_ip': mgmt_ip
-                })
-        
-        # Sort devices by hostname
-        devices_data = sorted(devices_data, key=lambda x: x['hostname'])
-    else:
-        logging.error(f"Failed to retrieve connected devices from {panorama}. Status code: {response.status_code}")
-
-    return devices_data
-
 def get_active_pan(panorama_instances):
     # Open a file for writing debug information
     with open('/tmp/get_active_pan_debug.log', 'w') as debug_file:
@@ -244,12 +218,12 @@ def get_active_pan(panorama_instances):
             debug_file.write(f"Checking if Panorama API key file exists at: {pankey_path}\n")
             if os.path.exists(pankey_path):
                 debug_file.write("Panorama API key file found\n")
-                panorama_api_key = read_file(pankey_path)
+                pan_api_key = read_file(pankey_path)
             else:
                 debug_file.write(f"Panorama API key file '{pankey_path}' not found.\n")
                 continue
 
-            headers = {'X-PAN-KEY': panorama_api_key}
+            headers = {'X-PAN-KEY': pan_api_key}
             url = f"https://{panorama}/api/?type=op&cmd={command}"
             debug_file.write(f"Sending request to Panorama: {url}\n")
             try:

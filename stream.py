@@ -16,15 +16,15 @@ def main():
     panorama_instances = ['A46PANORAMA', 'L17PANORAMA']  # Replace with actual Panorama hostnames
     active_pan = get_active_pan(panorama_instances)
     if active_pan:
-        st.sidebar.success(f"Primary Panorama: {active_pan}")
+        st.sidebar.success(f"Primary Pan: {active_pan}")
     else:
-        st.sidebar.error("No primary Panorama instance found.")
-
+        st.sidebar.error("No primary Pan found.")
+        exit()
     # Sidebar navigation
     with st.sidebar:
         selected = option_menu(
             "Navigation",
-            ["Panorama", "Palo Alto"],
+            ["Panorama", "Firewalls"],
             icons=["diagram-3", "shield-lock"],
             menu_icon="cast",
             default_index=0,
@@ -32,39 +32,39 @@ def main():
 
     # Main content
     if selected == "Panorama":
-        st.title("Panorama Dashboard")
-        PANtabs = st.tabs(["HA State", "Panorama Health", "Connected Devices"])
+        st.title("Panorama")
+        PANtabs = st.tabs(["H.A. Status", "Health", "Connected Devices"])
 
         with PANtabs[0]:
-            st.header("Panorama High-Availability State")
-            pan_ha_state.display_ha_state(active_pan)
+            st.header("H.A. Status")
+            if active_pan:
+                pan_ha_state.display_ha_state(active_pan)
 
         with PANtabs[1]:
+            st.header("Health")
             pan_health.display_pan_health()
 
         with PANtabs[2]:
             st.header("Connected Devices")
-            # Call the get_pan_devices function with the primary Panorama instance
-            get_pan_devices(active_pan)
-            st.write("Connected devices information has been written to a JSON file.")
+            get_pan_devices(active_pan) # Call the get_pan_devices function with the primary Panorama instance
 
-    elif selected == "Palo Alto":
-        st.title("Palo Alto Dashboard")
-        PAtabs = st.tabs(["Palo Device Overview", "Palo Tool1", "Palo Tool2"])
+    elif selected == "Firewalls":
+        st.title("Firewalls")
+        PAtabs = st.tabs(["Overview", "Health", "ARP Table"])
         
         with PAtabs[0]:
-            st.header("Palo Device Overview")
+            st.header("Overview")
             # Import and execute the palo_device_overview module
             import palo_device_overview
             palo_device_overview.display_device_overview()
             
         with PAtabs[1]:
-            st.header("Palo ARP Tables")
-            st.write("Palo ARP tables information goes here.")
+            st.header("Health")
+            st.write("Palo Health information goes here.")
             
         with PAtabs[2]:
-            st.header("Palo Tool2")
-            st.write("Palo tool2 information goes here.")
+            st.header("ARP Table")
+            st.write("Palo ARP information goes here.")
 
 if __name__ == "__main__":
     main()
