@@ -8,7 +8,8 @@ from xml.etree import ElementTree as ET
 from xml.dom import minidom
 
 def setup_logging(debug_mode):
-    log_format = '%(asctime)s - %(levelname)s - %(message)s'
+    # Define a log format that includes the script name and line number
+    log_format = '%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'
     try:
         # Force the logging configuration to override any existing settings
         logging.basicConfig(filename='/tmp/newstream.log', level=logging.DEBUG, format=log_format, force=True)
@@ -24,7 +25,7 @@ def setup_logging(debug_mode):
         logging.debug("Logging setup complete.")
     except Exception as e:
         print(f"Failed to set up logging: {e}")
-    
+
 
 
 def read_file(file_path):
