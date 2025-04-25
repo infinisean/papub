@@ -416,7 +416,6 @@ def display_ha_state(primary_pan):
         }
 
         # Display the key DataFrame using Streamlit with column configuration and custom height
-        st.subheader("Key HA State Variables")
         st.dataframe(key_df.reset_index(drop=True), column_config=column_config, height=key_height)
 
         # Separate the remaining DataFrame into additional variables
@@ -426,5 +425,5 @@ def display_ha_state(primary_pan):
         additional_df_reset = additional_df.reset_index(drop=True)
 
         # Display the additional DataFrame in a collapsible section
-        with st.expander("Additional HA State Variables"):
+        with st.expander("Additional HA States"):
             st.dataframe(additional_df_reset, column_config=column_config, height=row_height * len(additional_df))
