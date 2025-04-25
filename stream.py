@@ -42,7 +42,7 @@ def main():
 
         with PANtabs[1]:
             st.header("Health")
-            pan_health.display_pan_health()
+            #pan_health.display_pan_health()
 
         with PANtabs[2]:
             st.header("Connected Devices")
@@ -55,8 +55,8 @@ def main():
         with PAtabs[0]:
             st.header("Overview")
             # Import and execute the palo_device_overview module
-            import palo_device_overview
-            palo_device_overview.display_device_overview()
+            #import palo_device_overview
+            #palo_device_overview.display_device_overview()
             
         with PAtabs[1]:
             st.header("Health")

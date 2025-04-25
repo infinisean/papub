@@ -12,12 +12,11 @@ def read_file(file_path):
     return content
 
 def get_pan_devices(active_panorama):
+    
     # Define the API command to retrieve connected devices
     command = '<show><devices><connected></connected></devices></show>'
 
-    # Use the absolute path for the credentials directory
-    base_dir = '/home/netmonitor/.cred'
-    pankey_path = os.path.join(base_dir, 'pankey')
+    pankey = read_api_key()
 
     # Read the Panorama API key
     if os.path.exists(pankey_path):
