@@ -109,7 +109,7 @@ def display_ha_state(primary_pan):
         # Configure columns using st.column_config
         column_config = {
             "HA_State_Vars": st.column_config.TextColumn("HA_State_Vars", width=200),
-            pan_labels[0]: st.column_config.TextColumn(pan_labels[0], width=200),
+            "HostA": st.column_config.TextColumn(pan_labels[0], width=200),
             pan_labels[1]: st.column_config.TextColumn(pan_labels[1], width=200)
         }
 
