@@ -7,6 +7,8 @@ import pan_functions
 #import pan_ha_state
 #import pan_health
 #from pan_devices import get_pan_devices  # Import the get_pan_devices function
+print("Current working directory:", os.getcwd())
+print("Python path:", sys.path)
 
 setup_logging(debug_mode=True)
 
