@@ -66,12 +66,18 @@ def display_ha_state(primary_pan):
 
     # Create Row Labels from the panorama instances, except we add a " <<< ACT" label for whichever instance is the primary one
     pan_labels = [f"{panorama.upper()} <<< ACT" if panorama == primary_pan else panorama.upper() for panorama in panorama_instances]
-    # write the pan_labels to a file
+    # Write the pan_labels to a file
     pan_labels_path = "/tmp/palo/pan_labels.txt"
     with open(pan_labels_path, 'w') as file:
         file.write('\n'.join(pan_labels))
 
     if ha_states:
+        # Write ha_states.items() to a file for debugging
+        ha_states_items_path = "/tmp/palo/ha_states_items.txt"
+        with open(ha_states_items_path, 'w') as file:
+            for host, data in ha_states.items():
+                file.write(f"Host: {host}\nData: {data}\n\n")
+
         # Create a list of all unique labels
         all_labels = list(set().union(*[data.keys() for data in ha_states.values()]))
         # Create a DataFrame with labels as rows and hosts as columns
@@ -103,13 +109,10 @@ def display_ha_state(primary_pan):
         row_height = 35  # Approximate height per row in pixels
         key_height = row_height * len(key_df)
 
-        #PanA=panorama_instances[0].upper()
-        #PanB=panorama_instances[1].upper()
-
         # Configure columns using st.column_config
         column_config = {
             "HA_State_Vars": st.column_config.TextColumn("HA_State_Vars", width=200),
-            "HostA": st.column_config.TextColumn("PanHostA", width=200),
+            pan_labels[0]: st.column_config.TextColumn(pan_labels[0], width=200),
             pan_labels[1]: st.column_config.TextColumn(pan_labels[1], width=200)
         }
 
