@@ -3,6 +3,7 @@ import os
 import json
 from xml.etree import ElementTree as ET
 import logging
+import functions
 
 def read_file(file_path):
     logging.debug(f"Attempting to read file: {file_path}")
