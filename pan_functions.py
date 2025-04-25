@@ -264,7 +264,7 @@ def get_active_pan(panorama_instances):
 
 def get_pan_devices(active_panorama):
     json_file_path = "/tmp/palo/connected_devices.json"
-    # Check if the JSON file exists and is valid
+    # Check if the JSON file exists and is valid and recent
     if os.path.exists(json_file_path):
         file_mod_time = datetime.fromtimestamp(os.path.getmtime(json_file_path))
         if datetime.now() - file_mod_time < timedelta(hours=24):
