@@ -53,7 +53,8 @@ def main():
 
         with PANtabs[2]:
             st.header("Connected Devices")
-            get_pan_devices(active_pan) # Call the get_pan_devices function with the primary Panorama instance
+            pan_devices = get_pan_devices(active_pan) # Call the get_pan_devices function with the primary Panorama instance
+            display_pan_devices(pan_devices)  # Call the display_pan_connected_devices function with the primary Panorama instance
 
     elif selected == "Firewalls":
         st.title("Firewalls")

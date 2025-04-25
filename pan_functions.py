@@ -262,8 +262,20 @@ def get_active_pan(panorama_instances):
     return None
 
 def get_pan_devices(active_panorama):
-    
-    # Define the API command to retrieve connected devices
+    json_file_path = "/tmp/palo/connected_devices.json"
+    # Check if the JSON file exists and is valid
+    if os.path.exists(json_file_path):
+        file_mod_time = datetime.fromtimestamp(os.path.getmtime(json_file_path))
+        if datetime.now() - file_mod_time < timedelta(hours=24):
+            try:
+                with open(json_file_path, 'r') as json_file:
+                    devices_data = json.load(json_file)
+                logging.info("Using cached connected devices data.")
+                return devices_data
+            except (json.JSONDecodeError, FileNotFoundError):
+                logging.warning("Cached connected devices data is invalid or not found. Proceeding with API query.")
+
+    # If no valid cache, proceed with API query
     command = '<show><devices><connected></connected></devices></show>'
 
     pankey = read_pan_api_key()
@@ -429,3 +441,23 @@ def display_ha_state(primary_pan):
         # Display the additional DataFrame in a collapsible section
         with st.expander("Additional HA States"):
             st.dataframe(additional_df_reset, column_config=column_config, height=row_height * len(additional_df))
+            
+def display_pan_devices(pan_devices) 
+    # Create a DataFrame with columns for hostname, model, serial, and mgmt_ip
+    fields_to_display = [
+        'hostname', 'ip-address', 'default-gateway', 'mac-address', 'uptime',
+        'model', 'serial', 'base_mac', 'mac_count', 'sw-version',
+        'device-dictionary-release-date', 'app-release-date', 'av-release-date',
+        'threat-release-date', 'url-filtering-version', 'operational-mode',
+        'device-certificate-status'
+    ]
+
+    # Convert the list of device dictionaries to a DataFrame
+    df = pd.DataFrame(pan_devices)
+
+    # Filter the DataFrame to only include the specified fields
+    df = df[fields_to_display]
+
+    # Display the DataFrame using Streamlit
+    st.title("Connected Devices")
+    st.dataframe(df)
