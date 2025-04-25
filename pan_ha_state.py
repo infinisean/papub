@@ -71,18 +71,6 @@ def display_ha_state(primary_pan):
     with open(pan_labels_path, 'w') as file:
         file.write('\n'.join(pan_labels))
 
-    # Display the DataFrame with HA state variables
-    st.subheader("HA State Variables")
-    st.dataframe(key_df)
-
-    # Display the DataFrame with all HA state variables
-    st.subheader("All HA State Variables")
-    st.dataframe(df)
-
-    # Display the Panorama labels
-    st.subheader("Panorama Labels")
-    st.text(read_file(pan_labels_path))
-
     if ha_states:
         # Create a list of all unique labels
         all_labels = list(set().union(*[data.keys() for data in ha_states.values()]))
@@ -121,8 +109,8 @@ def display_ha_state(primary_pan):
         # Configure columns using st.column_config
         column_config = {
             "HA_State_Vars": st.column_config.TextColumn("HA_State_Vars", width=200),
-            pan_labels[0]: st.column_config.TextColumn(pan_labels[0], width=200),
-            pan_labels[1]: st.column_config.TextColumn(pan_labels[1], width=200)
+            pan_labels[0]: st.column_config.TextColumn(panorama_instances[0], width=200),
+            pan_labels[1]: st.column_config.TextColumn(panorama_instances[1], width=200)
         }
 
         # Display the key DataFrame using Streamlit with column configuration and custom height
