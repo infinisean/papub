@@ -449,18 +449,9 @@ def display_ha_state(primary_pan):
         with st.expander("Additional HA States"):
             st.dataframe(additional_df_reset, column_config=column_config, height=row_height * len(additional_df))
             
-def display_pan_devices(pan_devices): 
-    # Create a DataFrame with columns for hostname, model, serial, and mgmt_ip
-    '''
-    fields_to_display = [
-        'hostname', 'ip-address', 'default-gateway', 'mac-address', 'uptime',
-        'model', 'serial', 'base_mac', 'mac_count', 'sw-version',
-        'device-dictionary-release-date', 'app-release-date', 'av-release-date',
-        'threat-release-date', 'url-filtering-version', 'operational-mode',
-        'device-certificate-status'
-    ]
-    '''
-    fields_to_display = ['hostname','model','serial','mgmt_ip','mac_address','sw_version','uptime' ]  # Replace with the actual fields to display
+def display_pan_devices(pan_devices):
+    # Define the fields to display
+    fields_to_display = ['hostname', 'model', 'serial', 'mgmt_ip', 'mac_address', 'sw_version', 'uptime']
 
     # Convert the list of device dictionaries to a DataFrame
     df = pd.DataFrame(pan_devices)
@@ -468,6 +459,33 @@ def display_pan_devices(pan_devices):
     # Filter the DataFrame to only include the specified fields
     df = df[fields_to_display]
 
-    # Display the DataFrame using Streamlit
+    # Display the title
     st.title("Connected Devices")
-    st.dataframe(df)
+
+    # Create search boxes for each column
+    hostname_search = st.text_input("Search Hostname")
+    model_search = st.text_input("Search Model")
+    serial_search = st.text_input("Search Serial")
+    mgmt_ip_search = st.text_input("Search Management IP")
+    mac_address_search = st.text_input("Search MAC Address")
+    sw_version_search = st.text_input("Search Software Version")
+    uptime_search = st.text_input("Search Uptime")
+
+    # Filter the DataFrame based on search inputs
+    if hostname_search:
+        df = df[df['hostname'].str.contains(hostname_search, case=False, na=False)]
+    if model_search:
+        df = df[df['model'].str.contains(model_search, case=False, na=False)]
+    if serial_search:
+        df = df[df['serial'].str.contains(serial_search, case=False, na=False)]
+    if mgmt_ip_search:
+        df = df[df['mgmt_ip'].str.contains(mgmt_ip_search, case=False, na=False)]
+    if mac_address_search:
+        df = df[df['mac_address'].str.contains(mac_address_search, case=False, na=False)]
+    if sw_version_search:
+        df = df[df['sw_version'].str.contains(sw_version_search, case=False, na=False)]
+    if uptime_search:
+        df = df[df['uptime'].str.contains(uptime_search, case=False, na=False)]
+
+    # Display the DataFrame using Streamlit with 25 rows by default
+    st.dataframe(df, height=25 * 35)  # Assuming each row is approximately 35 pixels high
