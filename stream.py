@@ -13,7 +13,7 @@ from pan_functions import get_pan_devices, parse_element_to_dict, get_pan_ha_sta
 print("Current working directory:", os.getcwd())
 print("Python path:", sys.path)
 
-pan_functions.setup_logging(debug_mode=True)
+setup_logging(debug_mode=True)
 
 
 def main():
