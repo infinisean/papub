@@ -231,7 +231,7 @@ def get_active_pan(panorama_instances):
             try:
                 response = requests.get(url, headers=headers, verify=False)
                 debug_file.write(f"Response status code: {response.status_code}\n")
-                debug_file.write(f"Response text: {response.text}\n")  
+                debug_file.write(f"Response text: {response.text}\n")  # Log the first 500 characters of the response
             except Exception as e:
                 debug_file.write(f"Exception occurred while sending request: {e}\n")
                 continue
@@ -239,14 +239,7 @@ def get_active_pan(panorama_instances):
             if response.status_code == 200:
                 try:
                     xml_response = ET.fromstring(response.text)
-                    # write raw xml_response to debug file
-                    debug_file.write(f"Raw XML response: {xml_response}\n")
-     
-                        
-                    # Check for specific active states
-                    if ha_state.text.strip().lower() in ['primary-active','secondary-active']:
-                        debug_file.write(f"Primary Panorama instance found: {panorama}\n")
-                        #return panorama
+                    ha_state = xml_response.find('.//result/state')
                     if ha_state is not None:
                         state_text = ha_state.text.strip().lower()
                         debug_file.write(f"HA state for {panorama}: {state_text}\n")
