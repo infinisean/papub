@@ -45,7 +45,7 @@ def main():
         with PANtabs[0]:
             st.header("H.A. Status")
             if active_pan:
-                pan_ha_state.display_ha_state(active_pan)
+                display_ha_state(active_pan)
 
         with PANtabs[1]:
             st.header("Health")
