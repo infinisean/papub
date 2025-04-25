@@ -9,6 +9,7 @@ from xml.etree import ElementTree as ET
 from xml.dom import minidom
 import pandas as pd
 import streamlit as st
+import streamlit_keyup as st_keyup
 from datetime import datetime, timedelta 
 
 
@@ -467,21 +468,21 @@ def display_pan_devices(pan_devices):
     # Create columns for search boxes
     col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
 
-    # Create search boxes for each column
+    # Create search boxes for each column using streamlit-keyup with debounce
     with col1:
-        hostname_search = st.text_input("Hostname")
+        hostname_search = st_keyup.text_input("Hostname", key="hostname_search", debounce=500)
     with col2:
-        model_search = st.text_input("Model")
+        model_search = st_keyup.text_input("Model", key="model_search", debounce=500)
     with col3:
-        serial_search = st.text_input("Serial")
+        serial_search = st_keyup.text_input("Serial", key="serial_search", debounce=500)
     with col4:
-        mgmt_ip_search = st.text_input("Mgmt IP")
+        mgmt_ip_search = st_keyup.text_input("Mgmt IP", key="mgmt_ip_search", debounce=500)
     with col5:
-        mac_address_search = st.text_input("MAC Address")
+        mac_address_search = st_keyup.text_input("MAC Address", key="mac_address_search", debounce=500)
     with col6:
-        sw_version_search = st.text_input("SW Version")
+        sw_version_search = st_keyup.text_input("SW Version", key="sw_version_search", debounce=500)
     with col7:
-        uptime_search = st.text_input("Uptime")
+        uptime_search = st_keyup.text_input("Uptime", key="uptime_search", debounce=500)
 
     # Filter the DataFrame based on search inputs
     if hostname_search:
