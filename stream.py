@@ -10,7 +10,7 @@ import pan_functions
 print("Current working directory:", os.getcwd())
 print("Python path:", sys.path)
 
-setup_logging(debug_mode=True)
+pan_functions.setup_logging(debug_mode=True)
 
 
 def main():
