@@ -231,7 +231,7 @@ def get_active_pan(panorama_instances):
             try:
                 response = requests.get(url, headers=headers, verify=False)
                 debug_file.write(f"Response status code: {response.status_code}\n")
-                debug_file.write(f"Response text: {response.text[:500]}\n")  # Log the first 500 characters of the response
+                debug_file.write(f"Response text: {response.text}\n")  
             except Exception as e:
                 debug_file.write(f"Exception occurred while sending request: {e}\n")
                 continue
