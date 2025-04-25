@@ -323,6 +323,8 @@ def get_pan_devices(active_panorama):
     else:
         logging.error(f"Failed to retrieve connected devices from {active_panorama}. Status code: {response.status_code}")
 
+    # Sort the devices data by hostname
+    devices_data.sort(key=lambda x: x['hostname'])
     # Write the devices data to a JSON file
     json_file_path = "/tmp/palo/connected_devices.json"
     with open(json_file_path, 'w') as json_file:
