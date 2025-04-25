@@ -16,7 +16,7 @@ def get_pan_devices(active_panorama):
     # Define the API command to retrieve connected devices
     command = '<show><devices><connected></connected></devices></show>'
 
-    pankey = read_api_key()
+    pankey = read_pan_api_key()
 
     # Read the Panorama API key
     if os.path.exists(pankey_path):
