@@ -109,8 +109,8 @@ def display_ha_state(primary_pan):
         # Configure columns using st.column_config
         column_config = {
             "HA_State_Vars": st.column_config.TextColumn("HA_State_Vars", width=200),
-            pan_labels[0]: st.column_config.TextColumn(panorama_instances[0], width=200),
-            pan_labels[1]: st.column_config.TextColumn(panorama_instances[1], width=200)
+            pan_labels[0]: st.column_config.TextColumn(pan_labels[0], width=200),
+            pan_labels[1]: st.column_config.TextColumn(pan_labels[1], width=200)
         }
 
         # Display the key DataFrame using Streamlit with column configuration and custom height
