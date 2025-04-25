@@ -462,14 +462,24 @@ def display_pan_devices(pan_devices):
     # Display the title
     st.title("Connected Devices")
 
+    # Create columns for search boxes
+    col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+
     # Create search boxes for each column
-    hostname_search = st.text_input("Search Hostname")
-    model_search = st.text_input("Search Model")
-    serial_search = st.text_input("Search Serial")
-    mgmt_ip_search = st.text_input("Search Management IP")
-    mac_address_search = st.text_input("Search MAC Address")
-    sw_version_search = st.text_input("Search Software Version")
-    uptime_search = st.text_input("Search Uptime")
+    with col1:
+        hostname_search = st.text_input("Hostname")
+    with col2:
+        model_search = st.text_input("Model")
+    with col3:
+        serial_search = st.text_input("Serial")
+    with col4:
+        mgmt_ip_search = st.text_input("Mgmt IP")
+    with col5:
+        mac_address_search = st.text_input("MAC Address")
+    with col6:
+        sw_version_search = st.text_input("SW Version")
+    with col7:
+        uptime_search = st.text_input("Uptime")
 
     # Filter the DataFrame based on search inputs
     if hostname_search:
