@@ -242,12 +242,12 @@ def get_active_pan(panorama_instances):
                     ha_state = xml_response.find('.//result/state')
                     # write ha_state text to debug file
                     debug_file.write(f"HA state element found: {ha_state is not None}\n")
-                        debug_file.write(f"HA state text: {ha_state.text}\n")
+                    debug_file.write(f"HA state text: {ha_state.text}\n")
                         
-                        # Check for specific active states
-                        if ha_state.text.strip().lower() in ['primary-active','secondary-active']:
-                            debug_file.write(f"Primary Panorama instance found: {panorama}\n")
-                            #return panorama
+                    # Check for specific active states
+                    if ha_state.text.strip().lower() in ['primary-active','secondary-active']:
+                        debug_file.write(f"Primary Panorama instance found: {panorama}\n")
+                        #return panorama
                     if ha_state is not None:
                         state_text = ha_state.text.strip().lower()
                         debug_file.write(f"HA state for {panorama}: {state_text}\n")
