@@ -7,6 +7,7 @@ from pan_functions import setup_logging, read_file, get_db_credentials, palo_gen
 from pan_functions import send_api_query, get_pan_connected_devices, parse_system_resources, get_active_pan
 from pan_functions import get_pan_devices, parse_element_to_dict, get_pan_ha_state, display_ha_state, display_pan_devices
 
+
 #import pan_ha_state
 #import pan_health
 #from pan_devices import get_pan_devices  # Import the get_pan_devices function
