@@ -227,9 +227,9 @@ def get_pan_connected_devices(panorama):
 
     return devices_data
 
-def get_primary_pan(panorama_instances):
+def get_active_pan(panorama_instances):
     # Open a file for writing debug information
-    with open('/tmp/get_primary_pan_debug.log', 'w') as debug_file:
+    with open('/tmp/get_active_pan_debug.log', 'w') as debug_file:
         for panorama in panorama_instances:
             debug_file.write(f"Checking Panorama instance: {panorama}\n")
             # Define the API command to retrieve HA state
