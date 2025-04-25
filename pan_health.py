@@ -1,5 +1,5 @@
 import streamlit as st
-from functions import query_firewall_data
+import functions
 
 def display_pan_health():
     st.header("Panorama Health")
