@@ -2,18 +2,6 @@ import requests
 import os
 import json
 
-
-# Ensure the logger is flushed and closed properly
-def close_xml_logger():
-    for handler in xml_logger.handlers:
-        handler.close()
-        xml_logger.removeHandler(handler)
-
-
-
-# At the end of your script or application, ensure the logger is closed
-import atexit
-atexit.register(close_xml_logger)
 import mysql.connector
 import argparse
 import logging
@@ -23,47 +11,7 @@ import pandas as pd
 import streamlit as st
 from datetime import datetime, timedelta 
 
-
-def setup_xml_logging():
-    # Create a logger for XML processing
-    xml_logger = logging.getLogger('xml_logger')
-    xml_logger.setLevel(logging.DEBUG)
-
-    # Check if the logger already has handlers to avoid duplicate logs
-    if not xml_logger.handlers:
-        # Create a file handler for the XML log
-        xml_log_path = '/tmp/xml_processing.log'
-        file_handler = logging.FileHandler(xml_log_path)
-        file_handler.setLevel(logging.DEBUG)
-
-        # Create a log format
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        file_handler.setFormatter(formatter)
-
-        # Add the file handler to the logger
-        xml_logger.addHandler(file_handler)
-
-    return xml_logger
-
-
-def setup_logging(debug_mode):
-    # Define a log format that includes the script name and line number
-    log_format = '%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'
-    try:
-        # Force the logging configuration to override any existing settings
-        logging.basicConfig(filename='/tmp/newstream.log', level=logging.DEBUG, format=log_format, force=True)
-        
-        # Add console logging if debug_mode is True
-        if debug_mode:
-            console = logging.StreamHandler()
-            console.setLevel(logging.DEBUG)
-            formatter = logging.Formatter(log_format)
-            console.setFormatter(formatter)
-            logging.getLogger('').addHandler(console)
-        
-        logging.debug("Logging setup complete.")
-    except Exception as e:
-        print(f"Failed to set up logging: {e}")
+from logging_setup import xml_logger, main_logger
 
 def read_file(file_path):
     logging.debug(f"Attempting to read file: {file_path}")
@@ -158,6 +106,7 @@ def get_pan_connected_devices(active_panorama):
     devices_data = []
     try:
         xml_response = ET.fromstring(raw_response)
+        # xml pretty pr
         devices = xml_response.findall('.//entry')
         for device in devices:
             hostname = device.find('hostname').text if device.find('hostname') is not None else 'N/A'
