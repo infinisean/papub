@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 
 from logging_setup import xml_logger, main_logger
 
+
 def read_file(file_path):
     logging.debug(f"Attempting to read file: {file_path}")
     with open(file_path, 'r') as file:
