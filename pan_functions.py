@@ -291,9 +291,13 @@ def get_pan_devices(active_panorama):
         xml_response = ET.fromstring(response.text)
         
         # Debug: Write the raw XML response to a file
+        
+        
         raw_xml_path = "/tmp/palo/raw_devices.xml"
         with open(raw_xml_path, 'w') as file:
-            file.write(response.text)
+            # Format the XML output for readability
+            file.write(ET.tostring(xml_response, encoding='unicode'))
+            #file.write(response.text)
         logging.debug(f"Raw XML response written to {raw_xml_path}")
 
         devices = xml_response.findall('.//entry')
