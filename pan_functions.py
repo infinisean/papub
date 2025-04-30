@@ -447,7 +447,7 @@ def display_ha_state(primary_pan):
             
 def display_pan_devices(pan_devices):
     # Define the fields to display
-    fields_to_display = ['hostname', 'model', 'serial', 'mgmt_ip', 'mac_address', 'sw_version', 'uptime','global-protect-client-package-version']
+    fields_to_display = ['hostname', 'model', 'serial', 'mgmt_ip', 'mac_address', 'sw_version', 'uptime','global_protect_client_package_version']
 
     # Convert the list of device dictionaries to a DataFrame
     df = pd.DataFrame(pan_devices)
