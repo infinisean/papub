@@ -455,14 +455,17 @@ def display_ha_state(primary_pan):
             st.dataframe(additional_df_reset, column_config=column_config, height=row_height * len(additional_df))
             
 def display_pan_devices(pan_devices):
+    
+        # Convert the list of device dictionaries to a DataFrame
+    df = pd.DataFrame(pan_devices)
+    
         # Rename the column for display
     df = df.rename(columns={'global_protect_client_package_version': 'GP_ver'})
     
     # Define the fields to display with the updated label for the global protect version
     fields_to_display = ['hostname', 'model', 'serial', 'mgmt_ip', 'mac_address', 'sw_version', 'uptime', 'GP_ver']
 
-    # Convert the list of device dictionaries to a DataFrame
-    df = pd.DataFrame(pan_devices)
+
 
     # Debug: Log the columns present in the DataFrame
     logging.debug(f"DataFrame columns: {df.columns.tolist()}")
