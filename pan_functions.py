@@ -520,3 +520,5 @@ def display_pan_devices(pan_devices):
     st.dataframe(df, height=25 * 35)  # Assuming each row is approximately 35 pixels high
     
     
+    
+    
