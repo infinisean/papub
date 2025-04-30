@@ -300,6 +300,7 @@ def get_pan_devices(active_panorama):
             mac_address = device.find('mac-addr').text if device.find('mac-addr') is not None else 'N/A'
             sw_version = device.find('sw-version').text if device.find('sw-version') is not None else 'N/A'
             uptime = device.find('uptime').text if device.find('uptime') is not None else 'N/A'
+            gp_pkg_ver = device.find('global-protect-client-package-version').text if device.find('global-protect-client-package-version') is not '0.0.0' else '0'
             
             # Only add devices where not all fields are "N/A"
             if not (hostname == model == serial == mgmt_ip == 'N/A'):
@@ -310,7 +311,8 @@ def get_pan_devices(active_panorama):
                     'mgmt_ip': mgmt_ip,
                     'mac_address': mac_address,
                     'sw_version': sw_version,
-                    'uptime': uptime
+                    'uptime': uptime,
+                    'gp_pkg_ver': gp_pkg_ver
                 })
     else:
         logging.error(f"Failed to retrieve connected devices from {active_panorama}. Status code: {response.status_code}")
@@ -493,3 +495,5 @@ def display_pan_devices(pan_devices):
 
     # Display the DataFrame using Streamlit with 25 rows by default
     st.dataframe(df, height=25 * 35)  # Assuming each row is approximately 35 pixels high
+    
+    
