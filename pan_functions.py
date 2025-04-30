@@ -409,7 +409,7 @@ def display_ha_state(primary_pan):
 
         for host, data in ha_states.items():
             # Check if the current host is the primary Panorama
-            column_name = f"<b>{host}</b> <<< ACT" if host == primary_pan else host
+            column_name = f">->-> {host} <-<-<  ACT" if host == primary_pan else host
             df[column_name] = pd.Series(data)
 
         # Fill NaN with empty strings
