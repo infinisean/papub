@@ -454,10 +454,19 @@ def display_ha_state(primary_pan):
             
 def display_pan_devices(pan_devices):
     # Define the fields to display
-    fields_to_display = ['hostname', 'model', 'serial', 'mgmt_ip', 'mac_address', 'sw_version', 'uptime','global_protect_client_package_version']
+    fields_to_display = ['hostname', 'model', 'serial', 'mgmt_ip', 'mac_address', 'sw_version', 'uptime', 'global_protect_client_package_version']
 
     # Convert the list of device dictionaries to a DataFrame
     df = pd.DataFrame(pan_devices)
+
+    # Debug: Log the columns present in the DataFrame
+    logging.debug(f"DataFrame columns: {df.columns.tolist()}")
+
+    # Check for missing fields
+    missing_fields = [field for field in fields_to_display if field not in df.columns]
+    if missing_fields:
+        logging.error(f"Missing fields in DataFrame: {missing_fields}")
+        return
 
     # Filter the DataFrame to only include the specified fields
     df = df[fields_to_display]
@@ -484,7 +493,7 @@ def display_pan_devices(pan_devices):
     with col7:
         uptime_search = st.text_input("Uptime")
     with col8:
-        gp_ver_searcgh = st.text_input("G.P. Client Ver")
+        gp_ver_search = st.text_input("G.P. Client Ver")
 
     # Filter the DataFrame based on search inputs
     if hostname_search:
@@ -503,9 +512,9 @@ def display_pan_devices(pan_devices):
         df = df[df['uptime'].str.contains(uptime_search, case=False, na=False)]
     if gp_ver_search:
         df = df[df['global_protect_client_package_version'].str.contains(gp_ver_search, case=False, na=False)]
-        
 
     # Display the DataFrame using Streamlit with 25 rows by default
+    st.dataframe(df, height=25 * 35)  # Assuming each row is approximately 35 pixels high
     st.dataframe(df, height=25 * 35)  # Assuming each row is approximately 35 pixels high
     
     
