@@ -296,6 +296,7 @@ def get_active_pan(panorama_instances):
     return None
 
 def get_pan_devices(active_panorama):
+    global xml_logger 
     json_file_path = "/tmp/palo/connected_devices.json"
     # Check if the JSON file exists and is valid and recent
     if os.path.exists(json_file_path):
