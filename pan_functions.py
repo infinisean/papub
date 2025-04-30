@@ -295,10 +295,16 @@ def get_pan_devices(active_panorama):
         
         raw_xml_path = "/tmp/palo/raw_devices.xml"
         with open(raw_xml_path, 'w') as file:
-            # Format the XML output for readability
-            pretty_xml = minidom.parseString(response.text).toprettyxml(indent="  ")
-            file.write(pretty_xml)
-        logging.debug(f"Raw XML response written to {raw_xml_path}")
+            # Debug: Attempt to format the XML output for readability
+            try:
+                pretty_xml = minidom.parseString(response.text).toprettyxml(indent="  ")
+                file.write(pretty_xml)
+                logging.debug(f"Formatted XML response written to {raw_xml_path}")
+            except Exception as e:
+                logging.error(f"Failed to pretty-print XML: {e}")
+                # Write the raw XML response to the file for further inspection
+                file.write(response.text)
+                logging.debug(f"Raw XML response written to {raw_xml_path} for debugging")
 
         devices = xml_response.findall('.//entry')
         for device in devices:
