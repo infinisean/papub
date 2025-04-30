@@ -503,7 +503,7 @@ def display_pan_devices(pan_devices):
     with col7:
         uptime_search = st.text_input("Uptime")
     with col8:
-        gp_ver_search = st.text_input("G.P. Client Ver")
+        gp_ver_search = st.text_input("G.P. Ver")
 
     # Filter the DataFrame based on search inputs
     if hostname_search:
