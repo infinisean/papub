@@ -455,7 +455,7 @@ def display_ha_state(primary_pan):
             st.dataframe(additional_df_reset, column_config=column_config, height=row_height * len(additional_df))
             
 def display_pan_devices(pan_devices):
-    # Define the fields to display
+    # Define the fields to display with the updated label for the global protect version
     fields_to_display = ['hostname', 'model', 'serial', 'mgmt_ip', 'mac_address', 'sw_version', 'uptime', 'global_protect_client_package_version']
 
     # Convert the list of device dictionaries to a DataFrame
@@ -472,6 +472,9 @@ def display_pan_devices(pan_devices):
 
     # Filter the DataFrame to only include the specified fields
     df = df[fields_to_display]
+
+    # Rename the column for display
+    df = df.rename(columns={'global_protect_client_package_version': 'GP_ver'})
 
     # Display the title
     st.title("Connected Devices")
@@ -513,10 +516,9 @@ def display_pan_devices(pan_devices):
     if uptime_search:
         df = df[df['uptime'].str.contains(uptime_search, case=False, na=False)]
     if gp_ver_search:
-        df = df[df['global_protect_client_package_version'].str.contains(gp_ver_search, case=False, na=False)]
+        df = df[df['GP_ver'].str.contains(gp_ver_search, case=False, na=False)]
 
     # Display the DataFrame using Streamlit with 25 rows by default
-    st.dataframe(df, height=25 * 35)  # Assuming each row is approximately 35 pixels high
     st.dataframe(df, height=25 * 35)  # Assuming each row is approximately 35 pixels high
     
     
