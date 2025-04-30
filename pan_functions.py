@@ -308,6 +308,7 @@ def get_pan_devices(active_panorama):
             else:
                 global_protect_client_package_version = 'N/A'
 
+
             
             # Only add devices where not all fields are "N/A"
             if not (hostname == model == serial == mgmt_ip == 'N/A'):
