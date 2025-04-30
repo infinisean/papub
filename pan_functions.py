@@ -464,11 +464,7 @@ def display_pan_devices(pan_devices):
     # Debug: Log the columns present in the DataFrame
     logging.debug(f"DataFrame columns: {df.columns.tolist()}")
 
-    # Check for missing fields
-    missing_fields = [field for field in fields_to_display if field not in df.columns]
-    if missing_fields:
-        logging.error(f"Missing fields in DataFrame: {missing_fields}")
-        return
+
 
     # Filter the DataFrame to only include the specified fields
     df = df[fields_to_display]
