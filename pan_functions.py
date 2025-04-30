@@ -1,7 +1,22 @@
 import requests
 import os
 import json
-import time
+# Initialize the XML logger
+xml_logger = setup_xml_logging()
+
+# Ensure the logger is flushed and closed properly
+def close_xml_logger():
+    for handler in xml_logger.handlers:
+        handler.close()
+        xml_logger.removeHandler(handler)
+
+# Use the logger in your code
+# Example usage:
+xml_logger.debug("This is a test log message for XML processing.")
+
+# At the end of your script or application, ensure the logger is closed
+import atexit
+atexit.register(close_xml_logger)
 import mysql.connector
 import argparse
 import logging
@@ -17,17 +32,19 @@ def setup_xml_logging():
     xml_logger = logging.getLogger('xml_logger')
     xml_logger.setLevel(logging.DEBUG)
 
-    # Create a file handler for the XML log
-    xml_log_path = '/tmp/xml_processing.log'
-    file_handler = logging.FileHandler(xml_log_path)
-    file_handler.setLevel(logging.DEBUG)
+    # Check if the logger already has handlers to avoid duplicate logs
+    if not xml_logger.handlers:
+        # Create a file handler for the XML log
+        xml_log_path = '/tmp/xml_processing.log'
+        file_handler = logging.FileHandler(xml_log_path)
+        file_handler.setLevel(logging.DEBUG)
 
-    # Create a log format
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
+        # Create a log format
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
 
-    # Add the file handler to the logger
-    xml_logger.addHandler(file_handler)
+        # Add the file handler to the logger
+        xml_logger.addHandler(file_handler)
 
     return xml_logger
 
