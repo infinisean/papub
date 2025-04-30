@@ -15,6 +15,7 @@ print("Current working directory:", os.getcwd())
 print("Python path:", sys.path)
 
 setup_logging(debug_mode=True)
+xml_logger = setup_xml_logging()
 
 
 def main():

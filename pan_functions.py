@@ -11,7 +11,24 @@ import pandas as pd
 import streamlit as st
 from datetime import datetime, timedelta 
 
+def setup_xml_logging():
+    # Create a logger for XML processing
+    xml_logger = logging.getLogger('xml_logger')
+    xml_logger.setLevel(logging.DEBUG)
 
+    # Create a file handler for the XML log
+    xml_log_path = '/tmp/xml_processing.log'
+    file_handler = logging.FileHandler(xml_log_path)
+    file_handler.setLevel(logging.DEBUG)
+
+    # Create a log format
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+
+    # Add the file handler to the logger
+    xml_logger.addHandler(file_handler)
+
+    return xml_logger
 
 def setup_logging(debug_mode):
     # Define a log format that includes the script name and line number
@@ -291,25 +308,23 @@ def get_pan_devices(active_panorama):
         xml_response = ET.fromstring(response.text)
         
         # Debug: Write the raw XML response to a file
-        
-        
         raw_xml_path = "/tmp/palo/raw_devices.xml"
         with open(raw_xml_path, 'w') as file:
             # Debug: Attempt to format the XML output for readability
             try:
                 pretty_xml = minidom.parseString(response.text).toprettyxml(indent="  ")
                 file.write(pretty_xml)
-                logging.debug(f"Formatted XML response written to {raw_xml_path}")
+                xml_logger.debug(f"Formatted XML response written to {raw_xml_path}")
             except Exception as e:
-                logging.error(f"Failed to pretty-print XML: {e}")
+                xml_logger.error(f"Failed to pretty-print XML: {e}")
                 # Write the raw XML response to the file for further inspection
                 file.write(response.text)
-                logging.debug(f"Raw XML response written to {raw_xml_path} for debugging")
+                xml_logger.debug(f"Raw XML response written to {raw_xml_path} for debugging")
 
         devices = xml_response.findall('.//entry')
         for device in devices:
             # Debug: Print the device XML for inspection
-            logging.debug(f"Device XML: {ET.tostring(device, encoding='unicode')}")
+            xml_logger.debug(f"Device XML: {ET.tostring(device, encoding='unicode')}")
 
             hostname = device.find('hostname').text if device.find('hostname') is not None else 'N/A'
             model = device.find('model').text if device.find('model') is not None else 'N/A'
