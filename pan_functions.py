@@ -496,6 +496,7 @@ def display_pan_devices(pan_devices):
         df = df[df['uptime'].str.contains(uptime_search, case=False, na=False)]
     if gp_ver_search:
         df = df[df['global_protect_client_package_version'].str.contains(gp_ver_search, case=False, na=False)]
+        
 
     # Display the DataFrame using Streamlit with 25 rows by default
     st.dataframe(df, height=25 * 35)  # Assuming each row is approximately 35 pixels high
