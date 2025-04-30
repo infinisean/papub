@@ -459,11 +459,12 @@ def display_pan_devices(pan_devices):
     df = pd.DataFrame(pan_devices)
 
     # Debug: Log the columns present in the DataFrame
-    logging.debug(f"DataFrame columns: {df.columns.tolist()}")
+    logging.debug(f"DataFrame columns before renaming: {df.columns.tolist()}")
 
     # Rename the column for display
-    if 'global_protect_client_package_version' in df.columns:
-        df = df.rename(columns={'global_protect_client_package_version': 'GP_ver'})
+    if 'global-protect_client_package_version' in df.columns:
+        df = df.rename(columns={'global-protect_client_package_version': 'GP_ver'})
+        logging.debug("Renamed 'global-protect_client_package_version' to 'GP_ver'")
 
     # Define the fields to display with the updated label for the global protect version
     fields_to_display = ['hostname', 'model', 'serial', 'mgmt_ip', 'mac_address', 'sw_version', 'uptime', 'GP_ver']
@@ -476,6 +477,9 @@ def display_pan_devices(pan_devices):
 
     # Filter the DataFrame to only include the specified fields
     df = df[fields_to_display]
+
+    # Debug: Log the columns after filtering
+    logging.debug(f"DataFrame columns after filtering: {df.columns.tolist()}")
 
     # Display the title
     st.title("Connected Devices")
@@ -521,7 +525,3 @@ def display_pan_devices(pan_devices):
 
     # Display the DataFrame using Streamlit with 25 rows by default
     st.dataframe(df, height=25 * 35)  # Assuming each row is approximately 35 pixels high
-    
-    
-    
-    
