@@ -447,7 +447,7 @@ def display_ha_state(primary_pan):
             
 def display_pan_devices(pan_devices):
     # Define the fields to display
-    fields_to_display = ['hostname', 'model', 'serial', 'mgmt_ip', 'mac_address', 'sw_version', 'uptime']
+    fields_to_display = ['hostname', 'model', 'serial', 'mgmt_ip', 'mac_address', 'sw_version', 'uptime','gp_pkg_ver']
 
     # Convert the list of device dictionaries to a DataFrame
     df = pd.DataFrame(pan_devices)
@@ -459,7 +459,7 @@ def display_pan_devices(pan_devices):
     st.title("Connected Devices")
 
     # Create columns for search boxes
-    col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+    col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
 
     # Create search boxes for each column
     with col1:
@@ -476,6 +476,8 @@ def display_pan_devices(pan_devices):
         sw_version_search = st.text_input("SW Version")
     with col7:
         uptime_search = st.text_input("Uptime")
+    with col8:
+        gp_ver_searcgh = st.text_input("G.P. Client Ver")
 
     # Filter the DataFrame based on search inputs
     if hostname_search:
@@ -492,6 +494,8 @@ def display_pan_devices(pan_devices):
         df = df[df['sw_version'].str.contains(sw_version_search, case=False, na=False)]
     if uptime_search:
         df = df[df['uptime'].str.contains(uptime_search, case=False, na=False)]
+    if gp_ver_search:
+        df = df[df['gp_pkg_ver'].str.contains(gp_ver_search, case=False, na=False)]
 
     # Display the DataFrame using Streamlit with 25 rows by default
     st.dataframe(df, height=25 * 35)  # Assuming each row is approximately 35 pixels high
