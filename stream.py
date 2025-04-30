@@ -14,9 +14,11 @@ from pan_functions import get_pan_devices, parse_element_to_dict, get_pan_ha_sta
 print("Current working directory:", os.getcwd())
 print("Python path:", sys.path)
 
-setup_logging(debug_mode=True)
+# Initialize the XML logger
 xml_logger = setup_xml_logging()
-
+# Use the logger in your code
+# Example usage:
+xml_logger.debug("This is a test log message for XML processing.")
 
 def main():
     st.set_page_config(page_title="Publix Network Monitoring", layout="wide")

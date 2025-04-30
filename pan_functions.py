@@ -1,8 +1,7 @@
 import requests
 import os
 import json
-# Initialize the XML logger
-xml_logger = setup_xml_logging()
+
 
 # Ensure the logger is flushed and closed properly
 def close_xml_logger():
@@ -10,9 +9,7 @@ def close_xml_logger():
         handler.close()
         xml_logger.removeHandler(handler)
 
-# Use the logger in your code
-# Example usage:
-xml_logger.debug("This is a test log message for XML processing.")
+
 
 # At the end of your script or application, ensure the logger is closed
 import atexit
@@ -47,6 +44,7 @@ def setup_xml_logging():
         xml_logger.addHandler(file_handler)
 
     return xml_logger
+
 
 def setup_logging(debug_mode):
     # Define a log format that includes the script name and line number
