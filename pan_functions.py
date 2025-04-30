@@ -300,7 +300,14 @@ def get_pan_devices(active_panorama):
             mac_address = device.find('mac-addr').text if device.find('mac-addr') is not None else 'N/A'
             sw_version = device.find('sw-version').text if device.find('sw-version') is not None else 'N/A'
             uptime = device.find('uptime').text if device.find('uptime') is not None else 'N/A'
-            global_protect_client_package_version = device.find('global-protect-client-package-version').text if device.find('global-protect-client-package-version') is not '0.0.0' else '0'
+            global_protect_client_package_version_element = device.find('global-protect-client-package-version')
+            if global_protect_client_package_version_element is not None:
+                global_protect_client_package_version = global_protect_client_package_version_element.text
+                if global_protect_client_package_version == '0.0.0':
+                    global_protect_client_package_version = '0'
+            else:
+                global_protect_client_package_version = 'N/A'
+
             
             # Only add devices where not all fields are "N/A"
             if not (hostname == model == serial == mgmt_ip == 'N/A'):
