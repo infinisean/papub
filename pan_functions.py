@@ -319,7 +319,7 @@ def get_pan_devices(active_panorama):
                     'mac_address': mac_address,
                     'sw_version': sw_version,
                     'uptime': uptime,
-                    'global_protect_client_package_versionn': global_protect_client_package_version
+                    'global_protect_client_package_version': global_protect_client_package_version
                 })
     else:
         logging.error(f"Failed to retrieve connected devices from {active_panorama}. Status code: {response.status_code}")
