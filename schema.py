@@ -1,6 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, MetaData, Table
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 from db_connect import create_db_engine
 
 Base = declarative_base()
@@ -23,6 +22,23 @@ class FirewallHealth(Base):
     firewall_drops = Column(Integer)
     icmp_latency = Column(Float)
     packet_loss = Column(Float)
+
+class Device(Base):
+    __tablename__ = 'devices'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    hostname = Column(String(255), nullable=False)
+    mgmt_ip = Column(String(45), nullable=False)  # Supports IPv4 and IPv6
+    serial_number = Column(String(255), nullable=False)
+    mac_address = Column(String(17), nullable=False)
+    lat_long = Column(String(50))  # Latitude and Longitude as a string
+    bu = Column(String(50))  # Business Unit, e.g., 'retail' or 'corp'
+    lifecycle = Column(String(50))  # e.g., 'prod', 'dev', 'stage'
+    model = Column(String(255))
+    sw_version = Column(String(50))
+    ha = Column(Boolean, default=False)  # High Availability
+    ha_partner = Column(String(255))
+    interface_ips = Column(String(255))  # Comma-separated list of IPs
 
 def setup_database():
     engine = create_db_engine()
