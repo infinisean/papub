@@ -82,6 +82,25 @@ class Thresholds(Base):
     packet_loss_high = Column(Float)
     packet_loss_low = Column(Float)
 
+class ARPEntry(Base):
+    __tablename__ = 'arp_entries'
+    
+    device_id = Column(Integer, ForeignKey('devices.id'), primary_key=True)
+    ip_address = Column(String(40), primary_key=True)  # Supports IPv4 and IPv6
+    mac_address = Column(String(17), primary_key=True)
+    timestamp = Column(DateTime, nullable=False)
+    status = Column(String(10), nullable=False)  # "online" or "offline"
+
+class ARPHistory(Base):
+    __tablename__ = 'arp_history'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(Integer, ForeignKey('devices.id'), nullable=False)
+    ip_address = Column(String(40), nullable=False)
+    mac_address = Column(String(17), nullable=False)
+    timestamp = Column(DateTime, nullable=False)
+    status = Column(String(10), nullable=False)  # "online" or "offline"
+
 def setup_database(drop_tables=False):
     engine = create_db_engine()
     if drop_tables:
