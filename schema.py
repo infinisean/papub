@@ -1,10 +1,14 @@
 import argparse
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from db_connect import create_db_engine
 
 Base = declarative_base()
+
+# Define the possible values for the 'bu' and 'lifecycle' columns
+BUEnum = Enum('retail', 'corp', name='bu_enum')
+LifecycleEnum = Enum('prod', 'dev', 'stage', name='lifecycle_enum')
 
 class FirewallHealth(Base):
     __tablename__ = 'firewall_health'
@@ -37,8 +41,8 @@ class Device(Base):
     serial_number = Column(String(30), nullable=False)
     mac_address = Column(String(17), nullable=False)
     lat_long = Column(String(50))  # Latitude and Longitude as a string
-    bu = Column(String(50))  # Business Unit, e.g., 'retail' or 'corp'
-    lifecycle = Column(String(50))  # e.g., 'prod', 'dev', 'stage'
+    bu = Column(BUEnum, nullable=False)  # Business Unit as an enum
+    lifecycle = Column(LifecycleEnum, nullable=False)  # Lifecycle as an enum
     model = Column(String(50))
     sw_version = Column(String(50))
     ha = Column(Boolean, default=False)  # High Availability
@@ -47,6 +51,36 @@ class Device(Base):
 
     # Establish a relationship with FirewallHealth
     health_records = relationship("FirewallHealth", back_populates="device")
+
+class Thresholds(Base):
+    __tablename__ = 'thresholds'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    hostname = Column(String(30), ForeignKey('devices.hostname'), nullable=False, unique=True)
+    cpu_high = Column(Float)
+    cpu_low = Column(Float)
+    memory_used_high = Column(Float)
+    memory_used_low = Column(Float)
+    memory_free_high = Column(Float)
+    memory_free_low = Column(Float)
+    disk_usage_high = Column(Float)
+    disk_usage_low = Column(Float)
+    network_bandwidth_high = Column(Float)
+    network_bandwidth_low = Column(Float)
+    packet_rate_high = Column(Float)
+    packet_rate_low = Column(Float)
+    concurrent_connections_high = Column(Integer)
+    concurrent_connections_low = Column(Integer)
+    new_connections_per_sec_high = Column(Integer)
+    new_connections_per_sec_low = Column(Integer)
+    vpn_sessions_high = Column(Integer)
+    vpn_sessions_low = Column(Integer)
+    firewall_drops_high = Column(Integer)
+    firewall_drops_low = Column(Integer)
+    icmp_latency_high = Column(Float)
+    icmp_latency_low = Column(Float)
+    packet_loss_high = Column(Float)
+    packet_loss_low = Column(Float)
 
 def setup_database(drop_tables=False):
     engine = create_db_engine()
