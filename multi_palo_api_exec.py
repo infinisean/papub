@@ -1,7 +1,12 @@
+#!/usr/bin/python3
 import os
 import sys
 import requests
 from colorama import init, Fore, Style
+import urllib3
+
+# Suppress only the single InsecureRequestWarning from urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def palo_get_api_key(host, user, password):
     url = f"https://{host}/api/?type=keygen&user={user}&password={password}"
@@ -67,8 +72,18 @@ def do_api_query(host, key, cmd, verbose):
 
         if verbose:
             print(f"\n\nCMD: {url}\n")
-        if "<result>success" in curl_out:
-            print(f"{Fore.GREEN}{curl_out}{Style.RESET_ALL}")
+
+        # Extract and print the result if the status is success
+        if 'status="success"' in curl_out:
+            start = curl_out.find("<result>") + len("<result>")
+            end = curl_out.find("</result>")
+            result = curl_out[start:end].strip()
+            print(f"{Fore.GREEN}{result}{Style.RESET_ALL}")
+        elif 'status="error"' in curl_out:
+            start = curl_out.find("<msg>") + len("<msg>")
+            end = curl_out.find("</msg>")
+            error_msg = curl_out[start:end].strip()
+            print(f"{Fore.YELLOW}{error_msg}{Style.RESET_ALL}")
         else:
             print(f"{Fore.YELLOW}{curl_out}{Style.RESET_ALL}")
     except requests.RequestException as e:
