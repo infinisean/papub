@@ -2,8 +2,13 @@
 import os
 import sys
 import paramiko
+import warnings
 from datetime import datetime, timedelta
 from colorama import init, Fore, Style
+from cryptography.utils import CryptographyDeprecationWarning
+
+# Suppress specific warnings
+warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
 
 # Predefined status commands
 STATUS_COMMANDS = [
@@ -50,7 +55,8 @@ def execute_ssh_commands(host, user, password, key_file, commands, context):
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         
         if key_file:
-            client.connect(host, username=user, key_filename=key_file)
+            private_key = paramiko.RSAKey.from_private_key_file(key_file)
+            client.connect(host, username=user, pkey=private_key)
         else:
             client.connect(host, username=user, password=password)
         
@@ -63,6 +69,8 @@ def execute_ssh_commands(host, user, password, key_file, commands, context):
             store_output(host, command, output, context)
         
         client.close()
+    except paramiko.AuthenticationException:
+        print(f"{Fore.RED}Error: Authentication failed for {host}.{Style.RESET_ALL}")
     except Exception as e:
         error_message = f"Error executing commands on {host}: {e}"
         log_error(host, "multiple commands", error_message)
