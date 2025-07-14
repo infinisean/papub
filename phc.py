@@ -30,16 +30,21 @@ def read_creds():
     try:
         with open('.creds', 'r') as creds_file:
             user = creds_file.readline().strip()
-            password = creds_file.readline().strip()
-            if not user or not password:
-                raise ValueError("Credentials file must contain both a username and a password.")
-            return user, password
+            second_line = creds_file.readline().strip()
+            if not user or not second_line:
+                raise ValueError("Credentials file must contain both a username and a password or SSH key path.")
+            
+            # Check if the second line is a valid file path for an SSH key
+            if os.path.isfile(second_line):
+                return user, None, second_line  # Return user and key file path
+            else:
+                return user, second_line, None  # Return user and password
     except (FileNotFoundError, ValueError) as e:
         log_error("N/A", "read_creds", str(e))
         print(f"{Fore.RED}Error: {e}{Style.RESET_ALL}")
         sys.exit(1)
 
-def execute_ssh_command(host, user, password, key_file, command):
+def execute_ssh_commands(host, user, password, key_file, commands):
     try:
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -52,15 +57,16 @@ def execute_ssh_command(host, user, password, key_file, command):
         # Disable interactive paging
         client.exec_command("set cli pager off")
         
-        stdin, stdout, stderr = client.exec_command(command)
-        output = stdout.read().decode()
+        for command in commands:
+            stdin, stdout, stderr = client.exec_command(command)
+            output = stdout.read().decode()
+            store_output(host, command, output, context)
+        
         client.close()
-        return output
     except Exception as e:
-        error_message = f"Error executing command on {host}: {e}"
-        log_error(host, command, error_message)
-        print(f"{Fore.RED}Error executing command '{command}' on {host}: {e}{Style.RESET_ALL}")
-        return None
+        error_message = f"Error executing commands on {host}: {e}"
+        log_error(host, "multiple commands", error_message)
+        print(f"{Fore.RED}Error executing commands on {host}: {e}{Style.RESET_ALL}")
 
 def store_output(host, command, output, context, error=False):
     timestamp = datetime.now().strftime("%m-%d-%y-%H-%M-%S")
@@ -97,20 +103,13 @@ def compare_outputs(pre_file, post_file):
 def main():
     init(autoreset=True)  # Initialize colorama
 
-    if len(sys.argv) < 4 or "-c" not in sys.argv:
-        print(f"Syntax: {sys.argv[0]} [-v] [-k keyfile] -c context hostname\n\n")
+    if len(sys.argv) < 3 or "-c" not in sys.argv:
+        print(f"Syntax: {sys.argv[0]} [-v] -c context hostname\n\n")
         sys.exit(1)
 
     verbose = "-v" in sys.argv
-    key_file = None
-    if "-k" in sys.argv:
-        key_index = sys.argv.index("-k") + 1
-        if key_index >= len(sys.argv):
-            print("Error: Key file must follow the -k option.")
-            sys.exit(1)
-        key_file = sys.argv[key_index]
-
     context_index = sys.argv.index("-c") + 1
+
     if context_index >= len(sys.argv) - 1:
         print("Error: Context and hostname must follow the -c option.")
         sys.exit(1)
@@ -122,17 +121,10 @@ def main():
         print("Error: Context must be 'pre' or 'post'.")
         sys.exit(1)
 
-    user, password = read_creds() if not key_file else (None, None)
+    user, password, key_file = read_creds()
 
     if context == "pre":
-        for command in STATUS_COMMANDS:
-            output = execute_ssh_command(fwname, user, password, key_file, command)
-            if output:
-                store_output(fwname, command, output, context)
-            else:
-                error_message = f"Failed to execute command: {command}"
-                error_file_path = store_output(fwname, command, error_message, context, error=True)
-                log_error(fwname, command, error_file_path)
+        execute_ssh_commands(fwname, user, password, key_file, STATUS_COMMANDS)
 
     elif context == "post":
         pre_files = find_recent_pre_files(fwname)
@@ -147,19 +139,14 @@ def main():
         if datetime.now() - pre_file_time > timedelta(hours=24):
             print(f"{Fore.YELLOW}Warning: The most recent pre-change file for {fwname} is more than 24 hours old.{Style.RESET_ALL}")
 
+        execute_ssh_commands(fwname, user, password, key_file, STATUS_COMMANDS)
+
         for command in STATUS_COMMANDS:
-            output = execute_ssh_command(fwname, user, password, key_file, command)
-            if output:
-                post_file_path = store_output(fwname, command, output, context)
-                # Compare with the most recent pre file
-                pre_file = next((f for f in pre_files if command.replace(" ", "_") in f), None)
-                if pre_file:
-                    pre_file_path = os.path.join("output", fwname, pre_file)
-                    compare_outputs(pre_file_path, post_file_path)
-            else:
-                error_message = f"Failed to execute command: {command}"
-                error_file_path = store_output(fwname, command, error_message, context, error=True)
-                log_error(fwname, command, error_file_path)
+            post_file_path = os.path.join("output", fwname, f"{command.replace(' ', '_')}-{context}-{datetime.now().strftime('%m-%d-%y-%H-%M-%S')}.txt")
+            pre_file = next((f for f in pre_files if command.replace(" ", "_") in f), None)
+            if pre_file:
+                pre_file_path = os.path.join("output", fwname, pre_file)
+                compare_outputs(pre_file_path, post_file_path)
 
 if __name__ == "__main__":
     main()
