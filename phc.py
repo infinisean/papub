@@ -1,10 +1,9 @@
 #!/usr/bin/python3
 import os
 import sys
+import paramiko
 from datetime import datetime, timedelta
 from colorama import init, Fore, Style
-from panos import firewall
-from panos.errors import PanDeviceError
 
 # Predefined status commands
 STATUS_COMMANDS = [
@@ -44,17 +43,30 @@ def read_creds():
         log_error("N/A", "read_creds", str(e))
         print(f"{Fore.RED}Error: {e}{Style.RESET_ALL}")
         sys.exit(1)
-        
 
-def execute_commands(fw, commands, context):
+def execute_ssh_commands(host, user, password, key_file, commands, context):
     try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        
+        if key_file:
+            client.connect(host, username=user, key_filename=key_file)
+        else:
+            client.connect(host, username=user, password=password)
+        
+        # Disable interactive paging
+        client.exec_command("set cli pager off")
+        
         for command in commands:
-            output = fw.op(command, xml=True)
-            store_output(fw.hostname, command, output, context)
-    except PanDeviceError as e:
-        error_message = f"Error executing commands on {fw.hostname}: {e}"
-        log_error(fw.hostname, "multiple commands", error_message)
-        print(f"{Fore.RED}Error executing commands on {fw.hostname}: {e}{Style.RESET_ALL}")
+            stdin, stdout, stderr = client.exec_command(command)
+            output = stdout.read().decode()
+            store_output(host, command, output, context)
+        
+        client.close()
+    except Exception as e:
+        error_message = f"Error executing commands on {host}: {e}"
+        log_error(host, "multiple commands", error_message)
+        print(f"{Fore.RED}Error executing commands on {host}: {e}{Style.RESET_ALL}")
 
 def store_output(host, command, output, context, error=False):
     timestamp = datetime.now().strftime("%m-%d-%y-%H-%M-%S")
@@ -111,11 +123,8 @@ def main():
 
     user, password, key_file = read_creds()
 
-    # Initialize the firewall connection
-    fw = firewall.Firewall(fwname, user, password)
-
     if context == "pre":
-        execute_commands(fw, STATUS_COMMANDS, context)
+        execute_ssh_commands(fwname, user, password, key_file, STATUS_COMMANDS, context)
 
     elif context == "post":
         pre_files = find_recent_pre_files(fwname)
@@ -130,7 +139,7 @@ def main():
         if datetime.now() - pre_file_time > timedelta(hours=24):
             print(f"{Fore.YELLOW}Warning: The most recent pre-change file for {fwname} is more than 24 hours old.{Style.RESET_ALL}")
 
-        execute_commands(fw, STATUS_COMMANDS, context)
+        execute_ssh_commands(fwname, user, password, key_file, STATUS_COMMANDS, context)
 
         for command in STATUS_COMMANDS:
             post_file_path = os.path.join("output", fwname, f"{command.replace(' ', '_')}-{context}-{datetime.now().strftime('%m-%d-%y-%H-%M-%S')}.txt")
