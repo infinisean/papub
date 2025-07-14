@@ -44,6 +44,7 @@ def read_creds():
         log_error("N/A", "read_creds", str(e))
         print(f"{Fore.RED}Error: {e}{Style.RESET_ALL}")
         sys.exit(1)
+        
 
 def execute_commands(fw, commands, context):
     try:
