@@ -81,7 +81,7 @@ def execute_netmiko_commands(host, user, password, key_file, commands, context):
     except Exception as e:
         error_message = f"Error executing commands on {host}: {e}"
         log_error(host, "multiple commands", error_message)
-        print(f"{Fore.RED}Error executing commands on {host}: {e}{Style.RESET_ALL}")
+        print(f"{Fore.RED}Error{Style.RESET_ALL} executing commands on {Fore.CYAN}{host}{Style.RESET_ALL}: {Fore.RED}{e}{Style.RESET_ALL}")
 
 def store_output(host, command, output, context, error=False):
     timestamp = datetime.now().strftime("%m-%d-%y-%H-%M-%S")
