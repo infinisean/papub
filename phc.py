@@ -65,15 +65,17 @@ def execute_netmiko_commands(host, user, password, key_file, commands, context):
         with ConnectHandler(**device) as net_connect:
             if "-v" in sys.argv:
                 print(f"Successfully connected to {host}")
-                time.sleep(2)
+                time.sleep(1)
             # Send configuration commands 
             try:
-                print(f"Trying to connect...")
+                if "-v" in sys.argv:
+                    print(f"Trying to connect...")
                 net_connect.send_command("set cli scripting-mode on")
                 net_connect.send_command("set cli pager off")
                 output = net_connect.send_command("show clock")
-                print("Raw output from configuration commands: ")
-                print(output)  # Print the raw output
+                if "-v" in sys.argv:
+                    print("Raw output from configuration commands: ")
+                    print(output)  # Print the raw output
             except Exception as cmd_exception:
                 print("Error sending configuration commands: ")
                 print(cmd_exception)
@@ -86,14 +88,14 @@ def execute_netmiko_commands(host, user, password, key_file, commands, context):
                 if "-v" in sys.argv:
                     print(f"Running command '{command}' ...")
                 output = ""
-                output = net_connect.send_command(command,expect_string=prompt)
+                output = net_connect.send_command(command)
                 if "-v" in sys.argv:
                     print(f"Received {len(output)} bytes")
                 store_output(host, command, output, context)
 
             # Pause for a few seconds
             
-            time.sleep(2)
+            #time.sleep(2)
 
     except Exception as e:
         log_error(host, "multiple commands", error_message)
