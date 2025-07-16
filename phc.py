@@ -62,15 +62,23 @@ def execute_ssh_commands(host, user, password, key_file, commands, context):
             client.connect(host, username=user, password=password)
         
         # Disable interactive paging
-        client.exec_command("set cli pager off\n")
+        stdin, stdout, stderr = client.exec_command("set cli pager off\n")
+        output = stdout.read().decode()
+        if output:  
+            print(f"Received {len(output)} bytes")
+        else:
+            # comment: no output
+            print(f"{Fore.RED}Error: Failed to disable interactive paging.{Style.RESET_ALL}")
+            sys.exit(1)
+        
+        
         
         for command in commands:
             if "-v" in sys.argv:
                 print(f"Running command '{command}' ...")
             stdin, stdout, stderr = client.exec_command(command + "\n")
             output = stdout.read().decode()
-            if "-v" in sys.argv:
-                print(f"Received {len(output)} bytes")
+        
             store_output(host, command, output, context)
         client.close()
     except paramiko.AuthenticationException:
