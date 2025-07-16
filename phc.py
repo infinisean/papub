@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 import os
 import sys
-import paramiko
+import time
 import warnings
 from datetime import datetime, timedelta
 from colorama import init, Fore, Style
 from cryptography.utils import CryptographyDeprecationWarning
+from netmiko import ConnectHandler
 
 # Suppress specific warnings
 warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
@@ -49,41 +50,34 @@ def read_creds():
         print(f"{Fore.RED}Error: {e}{Style.RESET_ALL}")
         sys.exit(1)
 
-def execute_ssh_commands(host, user, password, key_file, commands, context):
+def execute_netmiko_commands(host, user, password, key_file, commands, context):
+    device = {
+        "device_type": "cisco_ios",  # Adjust this to match your device type
+        "host": host,
+        "username": user,
+        "use_keys": bool(key_file),
+        "key_file": key_file,
+        "password": password
+    }
+
     try:
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        
-        if key_file:
-            # Load the RSA private key
-            private_key = paramiko.RSAKey.from_private_key_file(key_file)
-            client.connect(host, username=user, pkey=private_key)
-        else:
-            client.connect(host, username=user, password=password)
-        
-        # Disable interactive paging
-        command = "set cli scripting mode on"
-        stdin, stdout, stderr = client.exec_command(command + "\r\n")
-        print(f"Running command '{command}' ...")
-        output = stdout.read().decode()
-        if output:  
-            print(f"Received {len(output)} bytes")
-        else:
-            err=stderr.read().decode()
-            # comment: no output
-            print(f"{Fore.RED}Error:{Style.RESET_ALL} Failed to disable interactive paging....  Error:  {Fore.RED}{err} {Style.RESET_ALL}")
-            sys.exit(1)
-        
-        for command in commands:
-            if "-v" in sys.argv:
-                print(f"Running command '{command}' ...")
-            stdin, stdout, stderr = client.exec_command(command + "\n")
-            output = stdout.read().decode()
-        
-            store_output(host, command, output, context)
-        client.close()
-    except paramiko.AuthenticationException:
-        print(f"{Fore.RED}Error: Authentication failed for {host}.{Style.RESET_ALL}")
+        with ConnectHandler(**device) as net_connect:
+            # Send configuration commands
+            output = net_connect.send_config_set(['set cli scripting-mode on', 'set cli pager off'])
+            print(output)
+
+            # Send show commands
+            for command in commands:
+                if "-v" in sys.argv:
+                    print(f"Running command '{command}' ...")
+                output = net_connect.send_command(command)
+                if "-v" in sys.argv:
+                    print(f"Received {len(output)} bytes")
+                store_output(host, command, output, context)
+
+            # Pause for a few seconds
+            time.sleep(5)
+
     except Exception as e:
         error_message = f"Error executing commands on {host}: {e}"
         log_error(host, "multiple commands", error_message)
@@ -145,7 +139,7 @@ def main():
     user, password, key_file = read_creds()
 
     if context == "pre":
-        execute_ssh_commands(fwname, user, password, key_file, STATUS_COMMANDS, context)
+        execute_netmiko_commands(fwname, user, password, key_file, STATUS_COMMANDS, context)
 
     elif context == "post":
         pre_files = find_recent_pre_files(fwname)
@@ -160,7 +154,7 @@ def main():
         if datetime.now() - pre_file_time > timedelta(hours=24):
             print(f"{Fore.YELLOW}Warning: The most recent pre-change file for {fwname} is more than 24 hours old.{Style.RESET_ALL}")
 
-        execute_ssh_commands(fwname, user, password, key_file, STATUS_COMMANDS, context)
+        execute_netmiko_commands(fwname, user, password, key_file, STATUS_COMMANDS, context)
 
         for command in STATUS_COMMANDS:
             post_file_path = os.path.join("output", fwname, f"{command.replace(' ', '_')}-{context}-{datetime.now().strftime('%m-%d-%y-%H-%M-%S')}.txt")
