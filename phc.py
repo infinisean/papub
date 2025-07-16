@@ -65,7 +65,7 @@ def execute_netmiko_commands(host, user, password, key_file, commands, context):
             if "-v" in sys.argv:
                 print(f"Successfully connected to {host}")
             # Send configuration commands 
-            output = net_connect.send_config_set(['set cli scripting-mode on', 'set cli pager off'])
+            output = net_connect.send_config_set(['set cli scripting-mode on\n', 'set cli pager off\n'])
             if output:
                 print(output)
             else:
