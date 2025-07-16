@@ -69,8 +69,9 @@ def execute_ssh_commands(host, user, password, key_file, commands, context):
         if output:  
             print(f"Received {len(output)} bytes")
         else:
+            err=stderr.read().decode()
             # comment: no output
-            print(f"{Fore.RED}Error: Failed to disable interactive paging.{Style.RESET_ALL}")
+            print(f"{Fore.RED}Error:{Style.RESET_ALL} Failed to disable interactive paging....  Error:  {Fore.RED}{err} {Style.RESET_ALL}")
             sys.exit(1)
         
         for command in commands:
