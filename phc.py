@@ -62,7 +62,7 @@ def execute_ssh_commands(host, user, password, key_file, commands, context):
             client.connect(host, username=user, password=password)
         
         # Disable interactive paging
-        command = "set cli pager off"
+        command = "set cli scripting mode on"
         stdin, stdout, stderr = client.exec_command(command + "\r\n")
         print(f"Running command '{command}' ...")
         output = stdout.read().decode()
