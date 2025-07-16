@@ -53,7 +53,7 @@ def read_creds():
 def execute_netmiko_commands(host, user, password, key_file, commands, context):
     prompt=r">"
     device = {
-        "device_type": "cisco_ios",  # Adjust this to match your device type
+        "device_type": "paloalto_panos",  # Adjust this to match your device type
         "host": host,
         "username": user,
         "use_keys": bool(key_file),
@@ -69,9 +69,9 @@ def execute_netmiko_commands(host, user, password, key_file, commands, context):
             # Send configuration commands 
             try:
                 print(f"Trying to connect...")
-                net_connect.send_command("set cli scripting-mode on", expect_string=prompt)
-                net_connect.send_command("set cli pager off", expect_string=prompt)
-                output = net_connect.send_command("show clock", expect_string=prompt)
+                net_connect.send_command("set cli scripting-mode on")
+                net_connect.send_command("set cli pager off")
+                output = net_connect.send_command("show clock")
                 print("Raw output from configuration commands: ")
                 print(output)  # Print the raw output
             except Exception as cmd_exception:
