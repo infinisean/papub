@@ -62,9 +62,15 @@ def execute_netmiko_commands(host, user, password, key_file, commands, context):
 
     try:
         with ConnectHandler(**device) as net_connect:
-            # Send configuration commands
+            if "-v" in sys.argv:
+                print(f"Successfully connected to {host}")
+            # Send configuration commands 
             output = net_connect.send_config_set(['set cli scripting-mode on', 'set cli pager off'])
-            print(output)
+            if output:
+                print(output)
+            else:
+                print("Failed to get output from firewall")
+                
 
             # Send show commands
             for command in commands:
