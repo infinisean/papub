@@ -51,6 +51,7 @@ def read_creds():
         sys.exit(1)
 
 def execute_netmiko_commands(host, user, password, key_file, commands, context):
+    prompt=r">"
     device = {
         "device_type": "cisco_ios",  # Adjust this to match your device type
         "host": host,
@@ -64,13 +65,13 @@ def execute_netmiko_commands(host, user, password, key_file, commands, context):
         with ConnectHandler(**device) as net_connect:
             if "-v" in sys.argv:
                 print(f"Successfully connected to {host}")
-                time.sleep(5)
+                time.sleep(2)
             # Send configuration commands 
             try:
                 print(f"Trying to connect...")
-                net_connect.send_command("set cli scripting-mode on", expect_string=r">")
-                net_connect.send_command("set cli pager off", expect_string=r">")
-                output = net_connect.send_command("show clock", expect_string=r">")
+                net_connect.send_command("set cli scripting-mode on", expect_string=prompt)
+                net_connect.send_command("set cli pager off", expect_string=prompt)
+                output = net_connect.send_command("show clock", expect_string=prompt)
                 print("Raw output from configuration commands: ")
                 print(output)  # Print the raw output
             except Exception as cmd_exception:
@@ -79,19 +80,20 @@ def execute_netmiko_commands(host, user, password, key_file, commands, context):
                 print("Raw output (if any):")
                 print(output)
                 
-            '''
+            
             # Send show commands
             for command in commands:
                 if "-v" in sys.argv:
                     print(f"Running command '{command}' ...")
-                output = net_connect.send_command(command)
+                output = ""
+                output = net_connect.send_command(command,expect_string=prompt)
                 if "-v" in sys.argv:
                     print(f"Received {len(output)} bytes")
                 store_output(host, command, output, context)
 
             # Pause for a few seconds
-            '''
-            time.sleep(5)
+            
+            time.sleep(2)
 
     except Exception as e:
         log_error(host, "multiple commands", error_message)
