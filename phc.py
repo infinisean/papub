@@ -55,19 +55,23 @@ def execute_ssh_commands(host, user, password, key_file, commands, context):
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         
         if key_file:
+            # Load the RSA private key
             private_key = paramiko.RSAKey.from_private_key_file(key_file)
             client.connect(host, username=user, pkey=private_key)
         else:
             client.connect(host, username=user, password=password)
         
         # Disable interactive paging
-        client.exec_command("set cli pager off")
+        client.exec_command("set cli pager off\n")
         
         for command in commands:
-            stdin, stdout, stderr = client.exec_command(command)
+            if "-v" in sys.argv:
+                print(f"Running command '{command}' ...")
+            stdin, stdout, stderr = client.exec_command(command + "\n")
             output = stdout.read().decode()
+            if "-v" in sys.argv:
+                print(f"Received {len(output)} bytes")
             store_output(host, command, output, context)
-        
         client.close()
     except paramiko.AuthenticationException:
         print(f"{Fore.RED}Error: Authentication failed for {host}.{Style.RESET_ALL}")
@@ -151,7 +155,7 @@ def main():
 
         for command in STATUS_COMMANDS:
             post_file_path = os.path.join("output", fwname, f"{command.replace(' ', '_')}-{context}-{datetime.now().strftime('%m-%d-%y-%H-%M-%S')}.txt")
-            pre_file = next((f for f in pre_files if command.replace(" ", "_") in f), None)
+            pre_file = next((f for f in pre_files if command.replace(' ', '_') in f), None)
             if pre_file:
                 pre_file_path = os.path.join("output", fwname, pre_file)
                 compare_outputs(pre_file_path, post_file_path)
