@@ -71,7 +71,7 @@ def execute_netmiko_commands(host, user, password, key_file, commands, context):
             else:
                 print("Failed to get output from firewall")
                 
-
+            '''
             # Send show commands
             for command in commands:
                 if "-v" in sys.argv:
@@ -82,6 +82,7 @@ def execute_netmiko_commands(host, user, password, key_file, commands, context):
                 store_output(host, command, output, context)
 
             # Pause for a few seconds
+            '''
             time.sleep(5)
 
     except Exception as e:
