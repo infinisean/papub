@@ -68,7 +68,7 @@ def execute_netmiko_commands(host, user, password, key_file, commands, context):
             # Send configuration commands 
             try:
                 print(f"Trying to connect...")
-                output = net_connect.send_config_set(['set cli scripting-mode on\n', 'set cli pager off\n'])
+                output = net_connect.send_command(["set cli scripting-mode on", expect_string=r">"])
                 print("Raw output from configuration commands: ")
                 print(output)  # Print the raw output
             except Exception as cmd_exception:
