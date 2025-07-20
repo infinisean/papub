@@ -1,0 +1,8 @@
+Interface      IP address      HW address           Status
+ethernet1/1    192.168.1.1     00:11:22:33:44:55    active
+ethernet1/1    192.168.1.10    00:11:22:33:44:66    active
+ethernet1/1    192.168.1.15    00:11:22:33:44:77    active
+ethernet1/1    192.168.1.20    00:11:22:33:44:88    active
+ethernet1/2    192.168.2.1     00:11:22:33:44:99    active
+ethernet1/2    192.168.2.10    00:11:22:33:44:aa    active
+ethernet1/2    192.168.2.15    00:11:22:33:44:bb    active

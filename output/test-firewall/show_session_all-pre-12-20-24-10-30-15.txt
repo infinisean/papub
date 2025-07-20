@@ -1,0 +1,11 @@
+ID       Source Zone    Dest Zone    Protocol  Source IP        Dest IP          State
+10001    trust          untrust      tcp       192.168.1.100    203.0.113.10     active
+10002    trust          untrust      tcp       192.168.1.101    203.0.113.11     active  
+10003    trust          untrust      udp       192.168.1.102    203.0.113.12     active
+10004    trust          untrust      tcp       192.168.1.103    203.0.113.13     active
+10005    dmz            untrust      tcp       10.0.1.100       203.0.113.20     active
+10006    dmz            untrust      tcp       10.0.1.101       203.0.113.21     active
+10007    trust          dmz          tcp       192.168.1.200    10.0.1.50        active
+10008    trust          dmz          tcp       192.168.1.201    10.0.1.51        active
+
+Total sessions: 8
